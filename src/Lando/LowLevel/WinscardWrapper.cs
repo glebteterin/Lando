@@ -26,7 +26,21 @@ namespace Lando.LowLevel
 			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 36)]
 			public byte[] rgbAtr;
 		}
-		
+
+		// Context scope
+
+		/// <summary>
+		/// Database operations are performed within the domain of the user.
+		/// </summary>
+		public const uint SCARD_SCOPE_USER = 0;
+
+		/// <summary>
+		/// This application will share this card with other applications.
+		/// </summary>
+		public const uint SCARD_SHARE_SHARED = 2;
+
+		// Methods
+
 		/// <summary>
 		/// The SCardEstablishContext function establishes the resource manager context (the scope) within which database operations are performed.
 		/// </summary>
