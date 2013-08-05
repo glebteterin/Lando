@@ -39,6 +39,41 @@ namespace Lando.LowLevel
 		/// </summary>
 		public const uint SCARD_SHARE_SHARED = 2;
 
+		// Smart card status
+
+		/// <summary>
+		/// No error was encountered.
+		/// </summary>
+		public const int SCARD_S_SUCCESS = 0;
+		/// <summary>
+		/// This value implies the driver is unaware of the current state of the reader.
+		/// </summary>
+		public const int SCARD_UNKNOWN = 0;
+		/// <summary>
+		/// There is no card in the reader.
+		/// </summary>
+		public const int SCARD_ABSENT = 1;
+		/// <summary>
+		/// There is a card in the reader, but it has not been moved into position for use.
+		/// </summary>
+		public const int SCARD_PRESENT = 2;
+		/// <summary>
+		/// There is a card in the reader in position for use. The card is not powered.
+		/// </summary>
+		public const int SCARD_SWALLOWED = 3;
+		/// <summary>
+		/// Power is being provided to the card, but the reader driver is unaware of the mode of the card.
+		/// </summary>
+		public const int SCARD_POWERED = 4;
+		/// <summary>
+		/// The card has been reset and is awaiting PTS negotiation.
+		/// </summary>
+		public const int SCARD_NEGOTIABLE = 5;
+		/// <summary>
+		/// The card has been reset and specific communication protocols have been established.
+		/// </summary>
+		public const int SCARD_SPECIFIC = 6;
+
 		// Methods
 
 		/// <summary>
@@ -88,5 +123,18 @@ namespace Lando.LowLevel
 		/// </summary>
 		[DllImport("winscard.dll")]
 		public static extern int SCardGetStatusChange(IntPtr phContext, uint dwTimeout, [In, Out] SCARD_READERSTATE[] rgReaderStates, int cReaders);
+
+		/// <see cref="http://msdn.microsoft.com/en-us/library/ms936965.aspx"/>
+		/// <summary>
+		/// Returns description of error code.
+		/// </summary>
+		public static OperationResult GetErrorMessage(int code)
+		{
+			if (code == SCARD_S_SUCCESS)
+				return new OperationResult(true, code, "SCARD_S_SUCCESS", " No error was encountered.");
+
+			return new OperationResult(false, code, "UNKNOWN", "");
+		}
+
 	}
 }

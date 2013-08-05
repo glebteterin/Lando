@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Lando.LowLevel
 {
@@ -35,6 +37,74 @@ namespace Lando.LowLevel
 
 			return returnCode;
 		}
+
+		/// <summary>
+		/// Return card readers list.
+		/// </summary>
+		public OperationResult GetCardReadersList(out string[] readersList)
+		{
+			if (!_isConnected)
+				throw new InvalidOperationException("You cannot call this method without esbablished context. Try call EstablishContext method first.");
+
+			readersList = new string[0];
+
+			OperationResult result;
+			int sizeOfReadersListStructure = 0;
+
+			int returnCode = WinscardWrapper.SCardListReaders(_resourceManagerContext, null, null, ref sizeOfReadersListStructure);
+
+			if (returnCode != WinscardWrapper.SCARD_S_SUCCESS)
+			{
+				result = WinscardWrapper.GetErrorMessage(returnCode);
+			}
+			else
+			{
+				// Fill reader list
+				var cardReadersList = new byte[sizeOfReadersListStructure];
+				returnCode = WinscardWrapper.SCardListReaders(_resourceManagerContext, null, cardReadersList, ref sizeOfReadersListStructure);
+
+				if (returnCode != WinscardWrapper.SCARD_S_SUCCESS)
+				{
+					result = WinscardWrapper.GetErrorMessage(returnCode);
+				}
+				else
+				{
+					// Convert to strings
+					readersList = ConvertReadersBuffer(cardReadersList);
+
+					result = WinscardWrapper.GetErrorMessage(returnCode);
+				}
+			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Convert bytes structure to string list.
+		/// </summary>
+		private string[] ConvertReadersBuffer(byte[] readersBuffer)
+		{
+			IList<string> result = new List<string>();
+			string readerName = "";
+			int indx = 0;
+
+			while (readersBuffer[indx] != 0)
+			{
+				while (readersBuffer[indx] != 0)
+				{
+					readerName = readerName + (char)readersBuffer[indx];
+					indx = indx + 1;
+				}
+
+				//Add reader name to list
+				result.Add(readerName);
+				readerName = "";
+				indx = indx + 1;
+			}
+
+			return result.ToArray();
+		}
+
 
 		/// <summary>
 		/// Destructor.
