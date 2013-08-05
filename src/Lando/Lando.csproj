@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LowLevel\LowLevelCardReader.cs" />
+    <Compile Include="LowLevel\OperationResult.cs" />
     <Compile Include="LowLevel\WinscardWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
