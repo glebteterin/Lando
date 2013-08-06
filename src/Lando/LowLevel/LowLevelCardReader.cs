@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Lando.LowLevel.ResultsTypes;
 
 namespace Lando.LowLevel
 {
@@ -80,6 +81,36 @@ namespace Lando.LowLevel
 			}
 
 			return result;
+		}
+
+		/// <summary>
+		/// Establishing a connection to smart card contained by a specific reader.
+		/// <param name="cardreaderName">Card reader name to connection.</param>
+		/// </summary>
+		public ConnectResult Connect(string cardreaderName)
+		{
+			if (!_isConnected)
+				throw new InvalidOperationException("You cannot call this method without esbablished context. "
+													+ "Try call EstablishContext method first.");
+
+			IntPtr cardConnectionHandle;
+			int connectionProtocolType;
+
+			int returnCode = WinscardWrapper.SCardConnect(
+				_resourceManagerContext,
+				cardreaderName,
+				WinscardWrapper.SCARD_SHARE_SHARED,
+				WinscardWrapper.SCARD_PROTOCOL_T0 | WinscardWrapper.SCARD_PROTOCOL_T1,
+				out cardConnectionHandle,
+				out connectionProtocolType);
+
+			var operationResult = WinscardWrapper.GetErrorMessage(returnCode);
+			var connectResult = new ConnectResult(operationResult);
+
+			if (operationResult.IsSuccessful)
+				connectResult.ConnectedCard = new Card(cardConnectionHandle, cardreaderName, connectionProtocolType);
+
+			return connectResult;
 		}
 
 		/// <summary>

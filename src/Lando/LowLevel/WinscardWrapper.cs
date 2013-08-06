@@ -39,6 +39,17 @@ namespace Lando.LowLevel
 		/// </summary>
 		public const uint SCARD_SHARE_SHARED = 2;
 
+		// Protocols
+
+		/// <summary>
+		/// T=0 is the active protocol.
+		/// </summary>
+		public const int SCARD_PROTOCOL_T0 = 0x01;
+		/// <summary>
+		/// T=1 is the active protocol.
+		/// </summary>
+		public const int SCARD_PROTOCOL_T1 = 0x02;
+
 		// Smart card status
 
 		/// <summary>
