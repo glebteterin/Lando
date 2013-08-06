@@ -7,6 +7,8 @@ namespace Lando.LowLevel
 {
 	internal class LowLevelCardReader : IDisposable
 	{
+		private static readonly int PciLength = System.Runtime.InteropServices.Marshal.SizeOf(typeof(WinscardWrapper.SCARD_IO_REQUEST));
+
 		private IntPtr _resourceManagerContext = IntPtr.Zero;
 
 		private bool _isConnected;
@@ -141,6 +143,67 @@ namespace Lando.LowLevel
 				cardToRead.Protocol = dwActProtocol;
 				result = ReturnCodeManager.GetCardState(returnCode);
 			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Returns a card's UID.
+		/// </summary>
+		public ReceiveCardIdResult GetCardId(Card cardToRead)
+		{
+			if (cardToRead == null) throw new ArgumentNullException("cardToRead");
+
+			var bytesToSend = new byte[5];
+			bytesToSend[0] = 0xFF; // Class
+			bytesToSend[1] = 0xCA; // INS
+			bytesToSend[2] = 0x00; // P1
+			bytesToSend[3] = 0x00; // P2
+			bytesToSend[4] = 0x00; // LE:Full Length
+
+			SendApduResult sendResult = SendAPDU(cardToRead, bytesToSend, 10);
+
+			const int responseCodeLength = 2;
+			var responseLengthWithoutResponseCodes = sendResult.ResponseLength - responseCodeLength;
+
+			var receiveCardIdResult =
+				new ReceiveCardIdResult(WinscardWrapper.GetErrorMessage(sendResult.ReturnCode))
+				{
+					IsApduCommandSuccessful = ReturnCodeManager.IsApduSuccessful(sendResult)
+				};
+
+			if (receiveCardIdResult.IsCompletelySuccessful)
+			{
+				//read UID bytes from apdu response
+				receiveCardIdResult.Bytes = sendResult.RecvBuff.Take(responseLengthWithoutResponseCodes).ToArray();
+			}
+
+			return receiveCardIdResult;
+		}
+
+		private SendApduResult SendAPDU(Card card, byte[] bytesToSend, int expectedRequestLength)
+		{
+			var recvBuff = new byte[500];
+
+			WinscardWrapper.SCARD_IO_REQUEST pioSendRequest;
+			pioSendRequest.dwProtocol = card.Protocol;
+			pioSendRequest.cbPciLength = PciLength;
+
+			int returnCode = WinscardWrapper.SCardTransmit(
+				card.ConnectionHandle, ref pioSendRequest,
+				ref bytesToSend[0], bytesToSend.Length,
+				ref pioSendRequest, ref recvBuff[0],
+				ref expectedRequestLength);
+
+			//http://msdn.microsoft.com/en-us/library/windows/desktop/aa379804(v=vs.85).aspx
+			//The pcbRecvLength should be at least n+2 and will be set to n+2 upon return.
+
+			var result = new SendApduResult
+			{
+				RecvBuff = recvBuff,
+				ResponseLength = expectedRequestLength,
+				ReturnCode = returnCode
+			};
 
 			return result;
 		}

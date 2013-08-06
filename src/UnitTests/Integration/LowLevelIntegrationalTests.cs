@@ -65,6 +65,18 @@ namespace Lando.UnitTests.Integration
 			Assert.That(_card.State.CardStateType, Is.EqualTo(CardStateType.CardSpecific));
 		}
 
+		[Test]
+		public void GetCardId()
+		{
+			// arrange
+			_card = _reader.Connect(GetCardreaderName()).ConnectedCard;
+
+			// act
+			var getCardIdResult = _reader.GetCardId(_card);
+
+			Assert.That(getCardIdResult.Bytes.Length, Is.GreaterThan(0));
+		}
+
 		private string GetCardreaderName()
 		{
 			string[] readerNames;
