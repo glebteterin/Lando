@@ -15,8 +15,11 @@ namespace Lando.LowLevel
 		/// <summary>
 		/// Establish Context of Resource Manager.
 		/// </summary>
-		public int EstablishContext()
+		public OperationResult EstablishContext()
 		{
+			if (_resourceManagerContext != IntPtr.Zero)
+				return new OperationResult(true, WinscardWrapper.SCARD_S_SUCCESS, null, null);
+
 			IntPtr notUsed1 = IntPtr.Zero;
 			IntPtr notUsed2 = IntPtr.Zero;
 
@@ -25,10 +28,10 @@ namespace Lando.LowLevel
 																	notUsed2,
 																	out _resourceManagerContext);
 
-			if (returnCode == 0)
+			if (returnCode == WinscardWrapper.SCARD_S_SUCCESS)
 				_isConnected = true;
 
-			return returnCode;
+			return WinscardWrapper.GetErrorMessage(returnCode);
 		}
 
 		public int ReleaseContext()
