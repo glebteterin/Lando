@@ -1,5 +1,6 @@
 using System;
 using Lando.LowLevel;
+using Lando.LowLevel.Enums;
 using NUnit.Framework;
 
 namespace Lando.UnitTests.Integration
@@ -11,6 +12,7 @@ namespace Lando.UnitTests.Integration
 		readonly LowLevelCardReader _reader = new LowLevelCardReader();
 
 		private bool _isContextEstablished;
+		private Card _card;
 
 		[SetUp]
 		public void Setup()
@@ -48,6 +50,19 @@ namespace Lando.UnitTests.Integration
 			var connectResult = _reader.Connect(GetCardreaderName());
 
 			Assert.That(connectResult.IsSuccessful, Is.True);
+		}
+
+		[Test]
+		public void GetCardState()
+		{
+			// arrange
+			_card = _reader.Connect(GetCardreaderName()).ConnectedCard;
+
+			// act
+			var stateResult = _reader.GetCardState(_card);
+
+			Assert.That(stateResult, Is.True);
+			Assert.That(_card.State.CardStateType, Is.EqualTo(CardStateType.CardSpecific));
 		}
 
 		private string GetCardreaderName()

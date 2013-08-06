@@ -40,12 +40,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LowLevel\Card.cs" />
+    <Compile Include="LowLevel\CardState.cs" />
+    <Compile Include="LowLevel\Enums\CardStateType.cs" />
     <Compile Include="LowLevel\LowLevelCardReader.cs" />
     <Compile Include="LowLevel\OperationResult.cs" />
+    <Compile Include="LowLevel\ReturnCodeManager.cs" />
     <Compile Include="LowLevel\WinscardWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LowLevel\ResultsTypes\ConnectResult.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

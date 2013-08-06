@@ -114,6 +114,38 @@ namespace Lando.LowLevel
 		}
 
 		/// <summary>
+		/// The function provides the current status of a smart card in a reader.
+		/// </summary>
+		public bool GetCardState(Card cardToRead)
+		{
+			if (cardToRead == null) throw new ArgumentNullException("cardToRead");
+
+			bool result;
+
+			var sizeOfReadersListStructure = 0;
+			var cardStateStatus = 0;
+			var dwActProtocol = 0;
+			var tmpAtrBytes = new byte[257];
+			var tmpAtrLen = 32;
+
+			var returnCode = WinscardWrapper.SCardStatus(cardToRead.ConnectionHandle, cardToRead.CardreaderName, ref sizeOfReadersListStructure, ref cardStateStatus, ref dwActProtocol, ref tmpAtrBytes[0], ref tmpAtrLen);
+
+			if (returnCode != WinscardWrapper.SCARD_S_SUCCESS)
+			{
+				result = ReturnCodeManager.GetCardState(returnCode);
+			}
+			else
+			{
+				cardToRead.State = new CardState(cardStateStatus);
+				cardToRead.Atr = tmpAtrBytes.Take(tmpAtrLen).ToArray();
+				cardToRead.Protocol = dwActProtocol;
+				result = ReturnCodeManager.GetCardState(returnCode);
+			}
+
+			return result;
+		}
+
+		/// <summary>
 		/// Convert bytes structure to string list.
 		/// </summary>
 		private string[] ConvertReadersBuffer(byte[] readersBuffer)
