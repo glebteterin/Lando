@@ -13,6 +13,15 @@ namespace Lando.LowLevel
 			}
 		}
 
+		public static bool DisconnectCard(int returnCode)
+		{
+			switch (returnCode)
+			{
+				case WinscardWrapper.SCARD_S_SUCCESS: return true;
+				default: return false;
+			}
+		}
+
 		public static bool IsApduSuccessful(SendApduResult sendResult)
 		{
 			return Check90_00(sendResult.RecvBuff, sendResult.ResponseLength);

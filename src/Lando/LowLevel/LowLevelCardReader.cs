@@ -181,6 +181,20 @@ namespace Lando.LowLevel
 			return receiveCardIdResult;
 		}
 
+		public bool DisconnectCard(Card cardForDisconnect)
+		{
+			if (cardForDisconnect == null) throw new ArgumentNullException("cardForDisconnect");
+
+			if (cardForDisconnect.ConnectionHandle != IntPtr.Zero)
+			{
+				int returnCode = WinscardWrapper.SCardDisconnect(cardForDisconnect.ConnectionHandle, WinscardWrapper.SCARD_UNPOWER_CARD);
+				cardForDisconnect.ConnectionHandle = IntPtr.Zero;
+				return ReturnCodeManager.DisconnectCard(returnCode);
+			}
+
+			return true;
+		}
+
 		private SendApduResult SendAPDU(Card card, byte[] bytesToSend, int expectedRequestLength)
 		{
 			var recvBuff = new byte[500];
