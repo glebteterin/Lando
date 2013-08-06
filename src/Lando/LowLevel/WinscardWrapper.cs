@@ -39,6 +39,27 @@ namespace Lando.LowLevel
 		/// </summary>
 		public const uint SCARD_SHARE_SHARED = 2;
 
+
+
+		/// <summary>
+		/// Do not do anything special.
+		/// </summary>
+		public const int SCARD_LEAVE_CARD = 0;
+		/// <summary>
+		/// Reset the card.
+		/// </summary>
+		public const int SCARD_RESET_CARD = 1;
+		/// <summary>
+		/// Power down the card.
+		/// </summary>
+		public const int SCARD_UNPOWER_CARD = 2;
+		/// <summary>
+		/// Eject the card.
+		/// </summary>
+		public const int SCARD_EJECT_CARD = 3;
+
+
+
 		// Protocols
 
 		/// <summary>
