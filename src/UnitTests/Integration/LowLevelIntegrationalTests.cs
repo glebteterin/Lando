@@ -41,6 +41,24 @@ namespace Lando.UnitTests.Integration
 			Assert.That(readerNames.Length, Is.EqualTo(1));
 		}
 
+		[Test]
+		public void Connect()
+		{
+			// act
+			var connectResult = _reader.Connect(GetCardreaderName());
+
+			Assert.That(connectResult.IsSuccessful, Is.True);
+		}
+
+		private string GetCardreaderName()
+		{
+			string[] readerNames;
+
+			GetCardreaderNames(out readerNames);
+
+			return readerNames[0];
+		}
+
 		private bool GetCardreaderNames(out string[] result)
 		{
 			var getCardReadersResult = _reader.GetCardReadersList(out result);
