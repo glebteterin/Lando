@@ -11,6 +11,8 @@ namespace Lando.LowLevel
 		internal byte[] Atr = null;
 		internal byte[] IdBytes = null;
 
+		public CardState State { get; set; }
+
 		public Card()
 		{}
 
