@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Lando.LowLevel.Enums;
 using Lando.LowLevel.ResultsTypes;
 
 namespace Lando.LowLevel
@@ -118,11 +119,11 @@ namespace Lando.LowLevel
 		/// <summary>
 		/// The function provides the current status of a smart card in a reader.
 		/// </summary>
-		public bool GetCardState(Card cardToRead)
+		public OperationResultType GetCardState(Card cardToRead)
 		{
 			if (cardToRead == null) throw new ArgumentNullException("cardToRead");
 
-			bool result;
+			OperationResultType result;
 
 			var sizeOfReadersListStructure = 0;
 			var cardStateStatus = 0;
@@ -181,7 +182,7 @@ namespace Lando.LowLevel
 			return receiveCardIdResult;
 		}
 
-		public bool DisconnectCard(Card cardForDisconnect)
+		public OperationResultType DisconnectCard(Card cardForDisconnect)
 		{
 			if (cardForDisconnect == null) throw new ArgumentNullException("cardForDisconnect");
 
@@ -192,7 +193,7 @@ namespace Lando.LowLevel
 				return ReturnCodeManager.DisconnectCard(returnCode);
 			}
 
-			return true;
+			return OperationResultType.Success;
 		}
 
 		private SendApduResult SendAPDU(Card card, byte[] bytesToSend, int expectedRequestLength)
