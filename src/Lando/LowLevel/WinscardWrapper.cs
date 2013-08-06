@@ -60,6 +60,64 @@ namespace Lando.LowLevel
 
 
 
+		// Error codes
+
+		public const int SCARD_F_INTERNAL_ERROR = -2146435071;
+		public const int SCARD_E_CANCELLED = -2146435070;
+		public const int SCARD_E_INVALID_HANDLE = -2146435069;
+		public const int SCARD_E_INVALID_PARAMETER = -2146435068;
+		public const int SCARD_E_INVALID_TARGET = -2146435067;
+		public const int SCARD_E_NO_MEMORY = -2146435066;
+		public const int SCARD_F_WAITED_TOO_LONG = -2146435065;
+		public const int SCARD_E_INSUFFICIENT_BUFFER = -2146435064;
+		public const int SCARD_E_UNKNOWN_READER = -2146435063;
+
+
+		public const int SCARD_E_TIMEOUT = -2146435062;
+		public const int SCARD_E_SHARING_VIOLATION = -2146435061;
+		public const int SCARD_E_NO_SMARTCARD = -2146435060;
+		public const int SCARD_E_UNKNOWN_CARD = -2146435059;
+		public const int SCARD_E_CANT_DISPOSE = -2146435058;
+		public const int SCARD_E_PROTO_MISMATCH = -2146435057;
+
+
+		public const int SCARD_E_NOT_READY = -2146435056;
+		public const int SCARD_E_INVALID_VALUE = -2146435055;
+		public const int SCARD_E_SYSTEM_CANCELLED = -2146435054;
+		public const int SCARD_F_COMM_ERROR = -2146435053;
+		public const int SCARD_F_UNKNOWN_ERROR = -2146435052;
+		public const int SCARD_E_INVALID_ATR = -2146435051;
+		public const int SCARD_E_NOT_TRANSACTED = -2146435050;
+		public const int SCARD_E_READER_UNAVAILABLE = -2146435049;
+		public const int SCARD_P_SHUTDOWN = -2146435048;
+		public const int SCARD_E_PCI_TOO_SMALL = -2146435047;
+
+		public const int SCARD_E_READER_UNSUPPORTED = -2146435046;
+		public const int SCARD_E_DUPLICATE_READER = -2146435045;
+		public const int SCARD_E_CARD_UNSUPPORTED = -2146435044;
+		public const int SCARD_E_NO_SERVICE = -2146435043;
+		public const int SCARD_E_SERVICE_STOPPED = -2146435042;
+
+		public const int SCARD_W_UNSUPPORTED_CARD = -2146435041;
+		public const int SCARD_W_UNRESPONSIVE_CARD = -2146435040;
+		public const int SCARD_W_UNPOWERED_CARD = -2146435039;
+		/// <summary>
+		/// The smart card has been reset, so any shared state information is invalid
+		/// </summary>
+		public const int SCARD_W_RESET_CARD = -2146435038;
+		public const int SCARD_W_REMOVED_CARD = -2146434967;
+
+		public const int SCARD_E_NO_READERS_AVAILABLE = -2146435026;
+		public const int SCARD_W_RESET_CARD2 = -2146434968;
+
+		public const int ERROR_INVALID_HANDLE = 6;
+		public const int ERROR_BAD_COMMAND = 22;
+
+		/// <summary>
+		/// The I/O operation has been aborted because of either a thread exit or an application request.
+		/// </summary>
+		public const int ERROR_OPERATION_ABORTED = 995;
+
 		// Protocols
 
 		/// <summary>
