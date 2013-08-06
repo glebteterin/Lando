@@ -17,7 +17,7 @@ namespace Lando.UnitTests.Integration
 		{
 			var fact = _reader.EstablishContext();
 
-			_isContextEstablished = fact == 0;
+			_isContextEstablished = fact.IsSuccessful;
 
 			if(!_isContextEstablished)
 				throw new Exception("Context is not established");
