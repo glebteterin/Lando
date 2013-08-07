@@ -38,11 +38,20 @@ namespace Lando.LowLevel
 			return WinscardWrapper.GetErrorMessage(returnCode);
 		}
 
-		public int ReleaseContext()
+		public OperationResult ReleaseContext()
 		{
+			if (!_isConnected)
+				throw new InvalidOperationException(
+					"You cannot call this method without esbablished context. Try call EstablishContext method first.");
+
 			int returnCode = WinscardWrapper.SCardReleaseContext(_resourceManagerContext);
 
-			return returnCode;
+			var operationResult = WinscardWrapper.GetErrorMessage(returnCode);
+
+			if (operationResult.IsSuccessful)
+				_isConnected = true;
+
+			return operationResult;
 		}
 
 		/// <summary>
