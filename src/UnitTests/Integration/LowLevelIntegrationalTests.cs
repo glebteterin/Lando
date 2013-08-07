@@ -78,6 +78,20 @@ namespace Lando.UnitTests.Integration
 		}
 
 		[Test]
+		public void Led()
+		{
+			// arrange
+			if (_card == null)
+				_card = _reader.Connect(GetCardreaderName()).ConnectedCard;
+
+			// act
+			var getCardIdResult = _reader.GetCardId(_card);
+			_reader.UpdateLedAndBuzzer(_card, 0x00, 0x00, 0x00, 0x00, 0x00);
+
+			Assert.That(getCardIdResult.Bytes.Length, Is.GreaterThan(0));
+		}
+
+		[Test]
 		public void DisableDefaultBuzzer()
 		{
 			// arrange

@@ -148,6 +148,23 @@ namespace Lando.LowLevel
 			return result;
 		}
 
+		public OperationResultType UpdateLedAndBuzzer(Card card, byte ledState, byte t1, byte t2, byte repetitionNumber, byte buzzer)
+		{
+			var bytesToSend = new byte[9];
+			bytesToSend[0] = 0xFF;
+			bytesToSend[1] = 0x00;
+			bytesToSend[2] = 0x40;
+			bytesToSend[3] = ledState;
+			bytesToSend[4] = 0x04;
+			bytesToSend[5] = t1;
+			bytesToSend[6] = t2;
+			bytesToSend[7] = repetitionNumber;
+			bytesToSend[8] = buzzer;
+
+			SendApduResult sendResult = SendAPDU(card, bytesToSend, 2);
+			return ReturnCodeManager.TransmitBytes(sendResult);
+		}
+
 		public OperationResultType SetBuzzerOutputForCardDetection(Card card, bool shouldBuzzWhenCardDetected)
 		{
 			var bytesToSend = new byte[5];
