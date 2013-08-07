@@ -148,6 +148,19 @@ namespace Lando.LowLevel
 			return result;
 		}
 
+		public OperationResultType SetBuzzerOutputForCardDetection(Card card, bool shouldBuzzWhenCardDetected)
+		{
+			var bytesToSend = new byte[5];
+			bytesToSend[0] = 0xFF;
+			bytesToSend[1] = 0x00;
+			bytesToSend[2] = 0x52;
+			bytesToSend[3] = shouldBuzzWhenCardDetected ? (byte)0xFF : (byte)0x00;
+			bytesToSend[4] = 0x00;
+
+			SendApduResult sendResult = SendAPDU(card, bytesToSend, 2);
+			return ReturnCodeManager.TransmitBytes(sendResult);
+		}
+
 		/// <summary>
 		/// Returns a card's UID.
 		/// </summary>

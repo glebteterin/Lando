@@ -77,6 +77,19 @@ namespace Lando.UnitTests.Integration
 			Assert.That(getCardIdResult.Bytes.Length, Is.GreaterThan(0));
 		}
 
+		[Test]
+		public void DisableDefaultBuzzer()
+		{
+			// arrange
+			if (_card == null)
+				_card = _reader.Connect(GetCardreaderName()).ConnectedCard;
+
+			// act
+			var operationResult = _reader.SetBuzzerOutputForCardDetection(_card, false);
+
+			Assert.That(operationResult, Is.EqualTo(OperationResultType.Success));
+		}
+
 		private string GetCardreaderName()
 		{
 			string[] readerNames;

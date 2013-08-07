@@ -29,6 +29,27 @@ namespace Lando.LowLevel
 			}
 		}
 
+		public static OperationResultType TransmitBytes(SendApduResult sendResult)
+		{
+			return ConvertReturnCode(sendResult, sendResult.ResponseLength);
+		}
+
+		private static OperationResultType ConvertReturnCode(SendApduResult sendResult, int fullResponseLength)
+		{
+			switch (sendResult.ReturnCode)
+			{
+				case WinscardWrapper.SCARD_S_SUCCESS:
+					if (Check90_00(sendResult.RecvBuff, fullResponseLength))
+						return OperationResultType.Success;
+					return OperationResultType.Failed;
+
+				case WinscardWrapper.SCARD_W_REMOVED_CARD: return OperationResultType.CardRemoved;
+				case WinscardWrapper.SCARD_E_READER_UNAVAILABLE: return OperationResultType.ReaderUnavailable;
+
+				default: throw new SmartCardException(sendResult.ReturnCode);
+			}
+		}
+
 		public static bool IsApduSuccessful(SendApduResult sendResult)
 		{
 			return Check90_00(sendResult.RecvBuff, sendResult.ResponseLength);
