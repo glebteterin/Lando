@@ -95,6 +95,34 @@ namespace Lando.LowLevel
 			return result;
 		}
 
+		public OperationResultType WaitForChanges(ref CardreaderStatus[] statuses)
+		{
+			var scardStatuses = new WinscardWrapper.SCARD_READERSTATE[statuses.Length];
+
+			for (var i = 0; i < statuses.Length; i++)
+				scardStatuses[i] = statuses[i].ToScardStatus();
+
+			var returnCode = WinscardWrapper.SCardGetStatusChange(
+				_resourceManagerContext,
+				WinscardWrapper.INFINITE,
+				scardStatuses,
+				scardStatuses.Length);
+
+			var result = OperationResultType.Success;
+
+			if (returnCode == WinscardWrapper.SCARD_S_SUCCESS)
+			{
+				for (var i = 0; i < statuses.Length; i++)
+					statuses[i].NewStatusFlags = scardStatuses[i].dwEventState;
+			}
+			else
+			{
+				result = OperationResultType.Failed;
+			}
+
+			return result;
+		}
+
 		/// <summary>
 		/// Establishing a connection to smart card contained by a specific reader.
 		/// <param name="cardreaderName">Card reader name to connection.</param>
