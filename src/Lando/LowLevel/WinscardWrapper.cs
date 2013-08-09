@@ -27,6 +27,8 @@ namespace Lando.LowLevel
 			public byte[] rgbAtr;
 		}
 
+		public const UInt32 INFINITE = 0xFFFFFFFF;
+
 		// Context scope
 
 		/// <summary>
@@ -163,6 +165,18 @@ namespace Lando.LowLevel
 		/// The card has been reset and specific communication protocols have been established.
 		/// </summary>
 		public const int SCARD_SPECIFIC = 6;
+
+		public const int SCARD_STATE_UNAWARE = 0;
+		public const int SCARD_STATE_IGNORE = 1;
+		public const int SCARD_STATE_CHANGED = 2;
+		public const int SCARD_STATE_UNKNOWN = 4;
+		public const int SCARD_STATE_UNAVAILABLE = 8;
+		public const int SCARD_STATE_EMPTY = 16;
+		public const int SCARD_STATE_PRESENT = 32;
+		public const int SCARD_STATE_ATRMATCH = 64;
+		public const int SCARD_STATE_EXCLUSIVE = 128;
+		public const int SCARD_STATE_INUSE = 256;
+		public const int SCARD_STATE_MUTE = 512;
 
 		// Methods
 

@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LowLevel\Card.cs" />
+    <Compile Include="LowLevel\CardreaderStatus.cs" />
     <Compile Include="LowLevel\CardState.cs" />
     <Compile Include="LowLevel\Enums\CardStateType.cs" />
     <Compile Include="LowLevel\Enums\OperationResultType.cs" />
