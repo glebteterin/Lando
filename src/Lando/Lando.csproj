@@ -39,6 +39,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cardreader.cs" />
+    <Compile Include="CardreaderEventArgs.cs" />
+    <Compile Include="CardreaderEventHandlerDelegate.cs" />
+    <Compile Include="ContactlessCard.cs" />
     <Compile Include="LowLevel\Card.cs" />
     <Compile Include="LowLevel\CardreaderStatus.cs" />
     <Compile Include="LowLevel\CardState.cs" />
@@ -54,6 +58,12 @@
     <Compile Include="LowLevel\WinscardWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LowLevel\ResultsTypes\ConnectResult.cs" />
+    <Compile Include="Watcher\Watcher.cs" />
+    <Compile Include="Watcher\WatcherCardEventArgs.cs" />
+    <Compile Include="Watcher\WatcherCardEventHandler.cs" />
+    <Compile Include="Watcher\WatcherCardreaderEventArgs.cs" />
+    <Compile Include="Watcher\WatcherCardreaderEventHandlerDelegate.cs" />
+    <Compile Include="Watcher\WatcherErrorEventHandlerDelegate.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
