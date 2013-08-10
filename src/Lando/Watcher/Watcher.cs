@@ -4,11 +4,14 @@ using System.Linq;
 using System.Threading;
 using Lando.LowLevel;
 using Lando.LowLevel.Enums;
+using NLog;
 
 namespace Lando.Watcher
 {
 	internal class Watcher
 	{
+		private static readonly Logger Logger = LogManager.GetLogger("LandoLog");
+
 		private const string PnpNotification = "\\\\?PnP?\\Notification";
 
 		private static readonly AsyncOperation AsyncOperation = AsyncOperationManager.CreateOperation(null);
@@ -108,9 +111,13 @@ namespace Lando.Watcher
 					// so check for that
 					if (!(operationResultType == OperationResultType.Failed && !_started))
 					{
+						Logger.Error("WaitForChanges operation result is " + operationResultType);
+
 						throw new SmartCardException((int) operationResultType);
 					}
 				}
+
+				Log(statusesParam);
 
 				foreach (var cardreaderStatus in statusesParam)
 				{
@@ -239,6 +246,18 @@ namespace Lando.Watcher
 					operationResult.StatusCode == WinscardWrapper.SCARD_E_INVALID_HANDLE ||
 					operationResult.StatusCode == WinscardWrapper.SCARD_E_READER_UNAVAILABLE ||
 					operationResult.StatusCode == WinscardWrapper.SCARD_E_UNKNOWN_READER;
+		}
+
+		private void Log(IEnumerable<CardreaderStatus> statuses)
+		{
+			foreach (var cardreaderStatus in statuses)
+			{
+				Logger.Trace("New statuses for {0}:", cardreaderStatus.Name);
+				foreach (var statusType in cardreaderStatus.Statuses)
+				{
+					Logger.Trace("Status: {0}", statusType);
+				}
+			}
 		}
 	}
 }
