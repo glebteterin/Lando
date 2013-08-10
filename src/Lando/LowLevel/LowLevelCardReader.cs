@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Lando.LowLevel.Enums;
 using Lando.LowLevel.ResultsTypes;
+using NLog;
 
 namespace Lando.LowLevel
 {
 	internal class LowLevelCardReader : IDisposable
 	{
+		private static readonly Logger Logger = LogManager.GetLogger("LandoLog");
+
 		private static readonly int PciLength = System.Runtime.InteropServices.Marshal.SizeOf(typeof(WinscardWrapper.SCARD_IO_REQUEST));
 
 		private IntPtr _resourceManagerContext = IntPtr.Zero;
@@ -33,7 +36,10 @@ namespace Lando.LowLevel
 																	out _resourceManagerContext);
 
 			if (returnCode == WinscardWrapper.SCARD_S_SUCCESS)
+			{
+				Logger.Debug("Context established");
 				_isConnected = true;
+			}
 
 			return WinscardWrapper.GetErrorMessage(returnCode);
 		}
@@ -49,7 +55,10 @@ namespace Lando.LowLevel
 			var operationResult = WinscardWrapper.GetErrorMessage(returnCode);
 
 			if (operationResult.IsSuccessful)
+			{
+				Logger.Debug("Context released");
 				_isConnected = true;
+			}
 
 			return operationResult;
 		}
@@ -102,11 +111,15 @@ namespace Lando.LowLevel
 			for (var i = 0; i < statuses.Length; i++)
 				scardStatuses[i] = statuses[i].ToScardStatus();
 
+			Logger.Trace("SCardGetStatusChange started");
+
 			var returnCode = WinscardWrapper.SCardGetStatusChange(
 				_resourceManagerContext,
 				WinscardWrapper.INFINITE,
 				scardStatuses,
 				scardStatuses.Length);
+
+			Logger.Trace("SCardGetStatusChange ended");
 
 			var result = OperationResultType.Success;
 
@@ -271,11 +284,16 @@ namespace Lando.LowLevel
 			pioSendRequest.dwProtocol = card.Protocol;
 			pioSendRequest.cbPciLength = PciLength;
 
+			Logger.Trace("SendAPDU started");
+			Logger.Trace("bytesToSend: {0}", BitConverter.ToString(bytesToSend));
+
 			int returnCode = WinscardWrapper.SCardTransmit(
 				card.ConnectionHandle, ref pioSendRequest,
 				ref bytesToSend[0], bytesToSend.Length,
 				ref pioSendRequest, ref recvBuff[0],
 				ref expectedRequestLength);
+
+			Logger.Trace("SendAPDU ended");
 
 			//http://msdn.microsoft.com/en-us/library/windows/desktop/aa379804(v=vs.85).aspx
 			//The pcbRecvLength should be at least n+2 and will be set to n+2 upon return.
