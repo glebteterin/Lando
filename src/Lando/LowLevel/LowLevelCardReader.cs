@@ -13,6 +13,8 @@ namespace Lando.LowLevel
 
 		private static readonly int PciLength = System.Runtime.InteropServices.Marshal.SizeOf(typeof(WinscardWrapper.SCARD_IO_REQUEST));
 
+		private readonly object _locker = new object();
+
 		private IntPtr _resourceManagerContext = IntPtr.Zero;
 
 		private bool _isConnected;
@@ -24,43 +26,49 @@ namespace Lando.LowLevel
 		/// </summary>
 		public OperationResult EstablishContext()
 		{
-			if (_resourceManagerContext != IntPtr.Zero)
-				return new OperationResult(true, WinscardWrapper.SCARD_S_SUCCESS, null, null);
-
-			IntPtr notUsed1 = IntPtr.Zero;
-			IntPtr notUsed2 = IntPtr.Zero;
-
-			int returnCode = WinscardWrapper.SCardEstablishContext(WinscardWrapper.SCARD_SCOPE_USER,
-																	notUsed1,
-																	notUsed2,
-																	out _resourceManagerContext);
-
-			if (returnCode == WinscardWrapper.SCARD_S_SUCCESS)
+			lock (_locker)
 			{
-				Logger.Debug("Context established");
-				_isConnected = true;
-			}
+				if (_resourceManagerContext != IntPtr.Zero)
+					return new OperationResult(true, WinscardWrapper.SCARD_S_SUCCESS, null, null);
 
-			return WinscardWrapper.GetErrorMessage(returnCode);
+				IntPtr notUsed1 = IntPtr.Zero;
+				IntPtr notUsed2 = IntPtr.Zero;
+
+				int returnCode = WinscardWrapper.SCardEstablishContext(WinscardWrapper.SCARD_SCOPE_USER,
+																		notUsed1,
+																		notUsed2,
+																		out _resourceManagerContext);
+
+				if (returnCode == WinscardWrapper.SCARD_S_SUCCESS)
+				{
+					Logger.Debug("Context established");
+					_isConnected = true;
+				}
+
+				return WinscardWrapper.GetErrorMessage(returnCode);
+			}
 		}
 
 		public OperationResult ReleaseContext()
 		{
-			if (!_isConnected)
-				throw new InvalidOperationException(
-					"You cannot call this method without esbablished context. Try call EstablishContext method first.");
-
-			int returnCode = WinscardWrapper.SCardReleaseContext(_resourceManagerContext);
-
-			var operationResult = WinscardWrapper.GetErrorMessage(returnCode);
-
-			if (operationResult.IsSuccessful)
+			lock (_locker)
 			{
-				Logger.Debug("Context released");
-				_isConnected = true;
-			}
+				if (!_isConnected)
+					throw new InvalidOperationException(
+						"You cannot call this method without esbablished context. Try call EstablishContext method first.");
 
-			return operationResult;
+				int returnCode = WinscardWrapper.SCardReleaseContext(_resourceManagerContext);
+
+				var operationResult = WinscardWrapper.GetErrorMessage(returnCode);
+
+				if (operationResult.IsSuccessful)
+				{
+					Logger.Debug("Context released");
+					_isConnected = true;
+				}
+
+				return operationResult;
+			}
 		}
 
 		/// <summary>
