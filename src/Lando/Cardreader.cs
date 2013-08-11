@@ -79,6 +79,13 @@ namespace Lando
 				status.GetBuzzerLink());
 		}
 
+		public void SetBuzzerOutputForCardDetection(ContactlessCard card, bool shouldBuzzWhenCardDetected)
+		{
+			if (card == null) throw new ArgumentNullException("card");
+
+			LowlevelReader.SetBuzzerOutputForCardDetection(card.Card, shouldBuzzWhenCardDetected);
+		}
+
 		internal virtual void OnCardreaderConnected(object sender, WatcherCardreaderEventArgs e)
 		{
 			//send notification to external subscriber
