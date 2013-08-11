@@ -68,6 +68,17 @@ namespace Lando
 			Reader.Stop();
 		}
 
+		public void UpdateLedAndBuzzer(ContactlessCard card, LedBuzzerStatus status)
+		{
+			if (card == null) throw new ArgumentNullException("card");
+
+			LowlevelReader.UpdateLedAndBuzzer(
+				card.Card, status.GetLedState(),
+				status.GetT1(), status.GetT2(),
+				status.GetRepetition(),
+				status.GetBuzzerLink());
+		}
+
 		internal virtual void OnCardreaderConnected(object sender, WatcherCardreaderEventArgs e)
 		{
 			//send notification to external subscriber

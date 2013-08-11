@@ -46,6 +46,9 @@
     <Compile Include="CardreaderEventArgs.cs" />
     <Compile Include="CardreaderEventHandlerDelegate.cs" />
     <Compile Include="ContactlessCard.cs" />
+    <Compile Include="Extensions\ByteExtensions.cs" />
+    <Compile Include="HexNumber.cs" />
+    <Compile Include="LedBuzzerStatus.cs" />
     <Compile Include="LowLevel\Card.cs" />
     <Compile Include="LowLevel\CardreaderStatus.cs" />
     <Compile Include="LowLevel\CardState.cs" />
