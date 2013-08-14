@@ -19,6 +19,8 @@ namespace Lando.UnitTests.Integration
 			_reader.CardConnected += (sender, args) =>
 			{
 				SetRed(args.Card);
+
+				// emulation of DB polling
 				Thread.Sleep(1000);
 
 				Console.WriteLine("Card connected : " + args.Card.Id);
