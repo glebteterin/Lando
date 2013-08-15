@@ -30,10 +30,6 @@ namespace Lando
 		/// Occurs when card disconnected.
 		/// </summary>
 		public virtual event CardreaderEventHandler CardDisconnected;
-		/// <summary>
-		/// Occurs when card disconnected.
-		/// </summary>
-		public virtual event CardreaderEventHandler Error;
 
 		public Cardreader()
 		{
@@ -44,7 +40,6 @@ namespace Lando
 			Reader.CardDisconnected += OnCardDisconnected;
 			Reader.CardreaderConnected += OnCardreaderConnected;
 			Reader.CardreaderDisconnected += OnCardreaderDisconnected;
-			Reader.Error += OnError;
 		}
 
 		/// <summary>
@@ -110,12 +105,6 @@ namespace Lando
 		{
 			//send notification to external subscriber
 			CardDisconnected(this, new CardreaderEventArgs((string)null));
-		}
-
-		internal virtual void OnError(object sender, Exception ex)
-		{
-			//send notification to external subscriber
-			Error(this, new CardreaderEventArgs(ex.Message));
 		}
 	}
 }
