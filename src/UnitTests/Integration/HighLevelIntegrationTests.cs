@@ -41,7 +41,6 @@ namespace Lando.UnitTests.Integration
 			_reader.CardDisconnected += (sender, args) => Console.WriteLine("Card Disconnected");
 			_reader.CardreaderConnected += (sender, args) => Console.WriteLine("Cardreader Connected : " + args.CardreaderName);
 			_reader.CardreaderDisconnected += (sender, args) => Console.WriteLine("Cardreader Disconnected : " + args.CardreaderName);
-			_reader.Error += (sender, args) => Console.WriteLine("Error : " + args.CardreaderName);
 
 			_reader.StartWatch();
 

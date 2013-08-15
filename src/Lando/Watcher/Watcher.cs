@@ -27,7 +27,6 @@ namespace Lando.Watcher
 		public event WatcherCardEventHandler CardDisconnected;
 		public event WatcherCardreaderEventHandler CardreaderConnected;
 		public event WatcherCardreaderEventHandler CardreaderDisconnected;
-		public event WatcherErrorEventHandler Error;
 
 		public Watcher(LowLevelCardReader cardreader)
 		{
