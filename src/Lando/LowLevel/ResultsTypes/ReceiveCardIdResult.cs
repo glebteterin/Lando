@@ -4,13 +4,8 @@ namespace Lando.LowLevel.ResultsTypes
 	{
 		public byte[] Bytes { get; set; }
 
-		public bool IsCompletelySuccessful
-		{
-			get { return IsSuccessful && IsApduCommandSuccessful; }
-		}
-
-		public ReceiveCardIdResult(OperationResult operationResult)
-			: base(operationResult)
+		public ReceiveCardIdResult(ApduOperationResult apduOperationResult)
+			: base(apduOperationResult, apduOperationResult.IsApduCommandSuccessful)
 		{
 		}
 	}

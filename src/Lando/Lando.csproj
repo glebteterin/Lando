@@ -53,12 +53,11 @@
     <Compile Include="LowLevel\CardreaderStatus.cs" />
     <Compile Include="LowLevel\CardState.cs" />
     <Compile Include="LowLevel\Enums\CardStateType.cs" />
-    <Compile Include="LowLevel\Enums\OperationResultType.cs" />
     <Compile Include="LowLevel\LowLevelCardReader.cs" />
-    <Compile Include="LowLevel\OperationResult.cs" />
+    <Compile Include="LowLevel\ResultsTypes\OperationResult.cs" />
     <Compile Include="LowLevel\ResultsTypes\ApduOperationResult.cs" />
     <Compile Include="LowLevel\ResultsTypes\ReceiveCardIdResult.cs" />
-    <Compile Include="LowLevel\ResultsTypes\SendAPDUResult.cs" />
+    <Compile Include="LowLevel\ResultsTypes\ApduResponse.cs" />
     <Compile Include="LowLevel\ReturnCodeManager.cs" />
     <Compile Include="LowLevel\SmartCardException.cs" />
     <Compile Include="LowLevel\WinscardWrapper.cs" />

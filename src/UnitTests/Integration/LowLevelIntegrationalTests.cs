@@ -101,7 +101,7 @@ namespace Lando.UnitTests.Integration
 			// act
 			var operationResult = _reader.SetBuzzerOutputForCardDetection(_card, false);
 
-			Assert.That(operationResult, Is.EqualTo(OperationResultType.Success));
+			Assert.IsTrue(operationResult.IsCompletelySuccessful);
 		}
 
 		private string GetCardreaderName()

@@ -1,4 +1,5 @@
 using System;
+using Lando.LowLevel.ResultsTypes;
 
 namespace Lando.LowLevel
 {
@@ -14,11 +15,6 @@ namespace Lando.LowLevel
 				return string.Format("Unexpected operation result. {0}({1}) - {2}",
 					OperationResult.StatusName, OperationResult.StatusCode, OperationResult.StatusDescription);
 			}
-		}
-
-		public SmartCardException(int errorCode)
-		{
-			ErrorCode = errorCode;
 		}
 
 		public SmartCardException(OperationResult operationResult)
