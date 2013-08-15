@@ -1,6 +1,7 @@
 ﻿using System;
 using Lando.LowLevel;
 using Lando.Watcher;
+using Lando.Extensions;
 
 namespace Lando
 {
@@ -84,13 +85,13 @@ namespace Lando
 		internal virtual void OnCardreaderConnected(object sender, WatcherCardreaderEventArgs e)
 		{
 			//send notification to external subscriber
-			CardreaderConnected(this, new CardreaderEventArgs(e.CardreaderName));
+			CardreaderConnected.SafeInvoke(this, new CardreaderEventArgs(e.CardreaderName));
 		}
 
 		internal virtual void OnCardreaderDisconnected(object sender, WatcherCardreaderEventArgs e)
 		{
 			//send notification to external subscriber
-			CardreaderDisconnected(this, new CardreaderEventArgs(e.CardreaderName));
+			CardreaderDisconnected.SafeInvoke(this, new CardreaderEventArgs(e.CardreaderName));
 		}
 
 		internal virtual void OnCardConnected(object sender, WatcherCardEventArgs e)
@@ -98,13 +99,13 @@ namespace Lando
 			var card = new ContactlessCard(e.Card);
 
 			//send notification to external subscriber
-			CardConnected(this, new CardreaderEventArgs(card, e.Card.CardreaderName));
+			CardConnected.SafeInvoke(this, new CardreaderEventArgs(card, e.Card.CardreaderName));
 		}
 
 		internal virtual void OnCardDisconnected(object sender, WatcherCardEventArgs e)
 		{
 			//send notification to external subscriber
-			CardDisconnected(this, new CardreaderEventArgs((string)null));
+			CardDisconnected.SafeInvoke(this, new CardreaderEventArgs((string)null));
 		}
 	}
 }
