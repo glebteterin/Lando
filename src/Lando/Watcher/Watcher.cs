@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Lando.LowLevel;
 using Lando.LowLevel.Enums;
+using Lando.LowLevel.ResultsTypes;
 using NLog;
 
 namespace Lando.Watcher
@@ -103,17 +104,17 @@ namespace Lando.Watcher
 
 				var statusesParam = statuses.ToArray();
 
-				var operationResultType = _cardreader.WaitForChanges(ref statusesParam);
+				var operationResult = _cardreader.WaitForChanges(ref statusesParam);
 
-				if (operationResultType != OperationResultType.Success)
+				if (!operationResult.IsSuccessful)
 				{
 					// when we call thread.abort the WaitForChanges returns Failed
 					// so check for that
-					if (!(operationResultType == OperationResultType.Failed && !_started))
+					if (_started)
 					{
-						Logger.Error("WaitForChanges operation result is " + operationResultType);
+						Logger.Error("WaitForChanges operation result is " + operationResult.StatusName);
 
-						throw new SmartCardException((int) operationResultType);
+						throw new SmartCardException(operationResult);
 					}
 				}
 

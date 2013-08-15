@@ -45,7 +45,7 @@ namespace Lando.LowLevel
 					_isConnected = true;
 				}
 
-				return WinscardWrapper.GetErrorMessage(returnCode);
+				return ReturnCodeManager.GetErrorMessage(returnCode);
 			}
 		}
 
@@ -59,7 +59,7 @@ namespace Lando.LowLevel
 
 				int returnCode = WinscardWrapper.SCardReleaseContext(_resourceManagerContext);
 
-				var operationResult = WinscardWrapper.GetErrorMessage(returnCode);
+				var operationResult = ReturnCodeManager.GetErrorMessage(returnCode);
 
 				if (operationResult.IsSuccessful)
 				{
@@ -88,7 +88,7 @@ namespace Lando.LowLevel
 
 			if (returnCode != WinscardWrapper.SCARD_S_SUCCESS)
 			{
-				result = WinscardWrapper.GetErrorMessage(returnCode);
+				result = ReturnCodeManager.GetErrorMessage(returnCode);
 			}
 			else
 			{
@@ -98,21 +98,21 @@ namespace Lando.LowLevel
 
 				if (returnCode != WinscardWrapper.SCARD_S_SUCCESS)
 				{
-					result = WinscardWrapper.GetErrorMessage(returnCode);
+					result = ReturnCodeManager.GetErrorMessage(returnCode);
 				}
 				else
 				{
 					// Convert to strings
 					readersList = ConvertReadersBuffer(cardReadersList);
 
-					result = WinscardWrapper.GetErrorMessage(returnCode);
+					result = ReturnCodeManager.GetErrorMessage(returnCode);
 				}
 			}
 
 			return result;
 		}
 
-		public OperationResultType WaitForChanges(ref CardreaderStatus[] statuses)
+		public OperationResult WaitForChanges(ref CardreaderStatus[] statuses)
 		{
 			var scardStatuses = new WinscardWrapper.SCARD_READERSTATE[statuses.Length];
 
@@ -129,19 +129,15 @@ namespace Lando.LowLevel
 
 			Logger.Trace("SCardGetStatusChange ended");
 
-			var result = OperationResultType.Success;
+			var operationResult = ReturnCodeManager.GetErrorMessage(returnCode);
 
-			if (returnCode == WinscardWrapper.SCARD_S_SUCCESS)
+			if (operationResult.IsSuccessful)
 			{
 				for (var i = 0; i < statuses.Length; i++)
 					statuses[i].NewStatusFlags = scardStatuses[i].dwEventState;
 			}
-			else
-			{
-				result = OperationResultType.Failed;
-			}
 
-			return result;
+			return operationResult;
 		}
 
 		/// <summary>
@@ -165,7 +161,7 @@ namespace Lando.LowLevel
 				out cardConnectionHandle,
 				out connectionProtocolType);
 
-			var operationResult = WinscardWrapper.GetErrorMessage(returnCode);
+			var operationResult = ReturnCodeManager.GetErrorMessage(returnCode);
 			var connectResult = new ConnectResult(operationResult);
 
 			if (operationResult.IsSuccessful)
@@ -177,11 +173,9 @@ namespace Lando.LowLevel
 		/// <summary>
 		/// The function provides the current status of a smart card in a reader.
 		/// </summary>
-		public OperationResultType GetCardState(Card cardToRead)
+		public OperationResult GetCardState(Card cardToRead)
 		{
 			if (cardToRead == null) throw new ArgumentNullException("cardToRead");
-
-			OperationResultType result;
 
 			var sizeOfReadersListStructure = 0;
 			var cardStateStatus = 0;
@@ -191,22 +185,19 @@ namespace Lando.LowLevel
 
 			var returnCode = WinscardWrapper.SCardStatus(cardToRead.ConnectionHandle, cardToRead.CardreaderName, ref sizeOfReadersListStructure, ref cardStateStatus, ref dwActProtocol, ref tmpAtrBytes[0], ref tmpAtrLen);
 
-			if (returnCode != WinscardWrapper.SCARD_S_SUCCESS)
-			{
-				result = ReturnCodeManager.GetCardState(returnCode);
-			}
-			else
+			OperationResult result = ReturnCodeManager.GetErrorMessage(returnCode);
+
+			if (result.IsSuccessful)
 			{
 				cardToRead.State = new CardState(cardStateStatus);
 				cardToRead.Atr = tmpAtrBytes.Take(tmpAtrLen).ToArray();
 				cardToRead.Protocol = dwActProtocol;
-				result = ReturnCodeManager.GetCardState(returnCode);
 			}
 
 			return result;
 		}
 
-		public OperationResultType UpdateLedAndBuzzer(Card card, byte ledState, byte t1, byte t2, byte repetitionNumber, byte buzzer)
+		public ApduOperationResult UpdateLedAndBuzzer(Card card, byte ledState, byte t1, byte t2, byte repetitionNumber, byte buzzer)
 		{
 			var bytesToSend = new byte[9];
 			bytesToSend[0] = 0xFF;
@@ -219,11 +210,14 @@ namespace Lando.LowLevel
 			bytesToSend[7] = repetitionNumber;
 			bytesToSend[8] = buzzer;
 
-			SendApduResult sendResult = SendAPDU(card, bytesToSend, 2);
-			return ReturnCodeManager.TransmitBytes(sendResult);
+			const int responseCodeLength = 2;
+
+			ApduResponse response = SendAPDU(card, bytesToSend, responseCodeLength);
+
+			return ReturnCodeManager.IsApduSuccessful(response);
 		}
 
-		public OperationResultType SetBuzzerOutputForCardDetection(Card card, bool shouldBuzzWhenCardDetected)
+		public ApduOperationResult SetBuzzerOutputForCardDetection(Card card, bool shouldBuzzWhenCardDetected)
 		{
 			var bytesToSend = new byte[5];
 			bytesToSend[0] = 0xFF;
@@ -232,8 +226,11 @@ namespace Lando.LowLevel
 			bytesToSend[3] = shouldBuzzWhenCardDetected ? (byte)0xFF : (byte)0x00;
 			bytesToSend[4] = 0x00;
 
-			SendApduResult sendResult = SendAPDU(card, bytesToSend, 2);
-			return ReturnCodeManager.TransmitBytes(sendResult);
+			const int responseCodeLength = 2;
+
+			ApduResponse response = SendAPDU(card, bytesToSend, responseCodeLength);
+
+			return ReturnCodeManager.IsApduSuccessful(response);
 		}
 
 		/// <summary>
@@ -250,27 +247,23 @@ namespace Lando.LowLevel
 			bytesToSend[3] = 0x00; // P2
 			bytesToSend[4] = 0x00; // LE:Full Length
 
-			SendApduResult sendResult = SendAPDU(cardToRead, bytesToSend, 10);
+			ApduResponse response = SendAPDU(cardToRead, bytesToSend, 10);
 
 			const int responseCodeLength = 2;
-			var responseLengthWithoutResponseCodes = sendResult.ResponseLength - responseCodeLength;
+			var responseLengthWithoutResponseCodes = response.ResponseLength - responseCodeLength;
 
-			var receiveCardIdResult =
-				new ReceiveCardIdResult(WinscardWrapper.GetErrorMessage(sendResult.ReturnCode))
-				{
-					IsApduCommandSuccessful = ReturnCodeManager.IsApduSuccessful(sendResult)
-				};
+			var receiveCardIdResult = new ReceiveCardIdResult(ReturnCodeManager.IsApduSuccessful(response));
 
 			if (receiveCardIdResult.IsCompletelySuccessful)
 			{
 				//read UID bytes from apdu response
-				receiveCardIdResult.Bytes = sendResult.RecvBuff.Take(responseLengthWithoutResponseCodes).ToArray();
+				receiveCardIdResult.Bytes = response.RecvBuff.Take(responseLengthWithoutResponseCodes).ToArray();
 			}
 
 			return receiveCardIdResult;
 		}
 
-		public OperationResultType DisconnectCard(Card cardForDisconnect)
+		public OperationResult DisconnectCard(Card cardForDisconnect)
 		{
 			if (cardForDisconnect == null) throw new ArgumentNullException("cardForDisconnect");
 
@@ -278,13 +271,13 @@ namespace Lando.LowLevel
 			{
 				int returnCode = WinscardWrapper.SCardDisconnect(cardForDisconnect.ConnectionHandle, WinscardWrapper.SCARD_UNPOWER_CARD);
 				cardForDisconnect.ConnectionHandle = IntPtr.Zero;
-				return ReturnCodeManager.DisconnectCard(returnCode);
+				return ReturnCodeManager.GetErrorMessage(returnCode);
 			}
 
-			return OperationResultType.Success;
+			return OperationResult.Successful;
 		}
 
-		private SendApduResult SendAPDU(Card card, byte[] bytesToSend, int expectedRequestLength)
+		private ApduResponse SendAPDU(Card card, byte[] bytesToSend, int expectedRequestLength)
 		{
 			var recvBuff = new byte[500];
 
@@ -306,7 +299,7 @@ namespace Lando.LowLevel
 			//http://msdn.microsoft.com/en-us/library/windows/desktop/aa379804(v=vs.85).aspx
 			//The pcbRecvLength should be at least n+2 and will be set to n+2 upon return.
 
-			var result = new SendApduResult
+			var result = new ApduResponse
 			{
 				RecvBuff = recvBuff,
 				ResponseLength = expectedRequestLength,

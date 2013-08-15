@@ -1,6 +1,6 @@
 namespace Lando.LowLevel.ResultsTypes
 {
-	internal class SendApduResult
+	internal class ApduResponse
 	{
 		public int ReturnCode { get; set; }
 		public byte[] RecvBuff = new byte[263];

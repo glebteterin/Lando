@@ -1,4 +1,4 @@
-﻿namespace Lando.LowLevel
+﻿namespace Lando.LowLevel.ResultsTypes
 {
 	public class OperationResult
 	{
@@ -16,6 +16,14 @@
 			StatusCode = statusCode;
 			StatusName = statusName;
 			StatusDescription = statusDescription;
+		}
+
+		public static OperationResult Successful
+		{
+			get
+			{
+				return ReturnCodeManager.GetErrorMessage(WinscardWrapper.SCARD_S_SUCCESS);
+			}
 		}
 	}
 }

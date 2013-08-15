@@ -2,15 +2,21 @@
 {
 	public class ApduOperationResult : OperationResult
 	{
-		public bool IsApduCommandSuccessful { get; set; }
+		public bool IsApduCommandSuccessful { get; private set; }
 
-		public ApduOperationResult(OperationResult operationResult)
+		public bool IsCompletelySuccessful
+		{
+			get { return IsSuccessful && IsApduCommandSuccessful; }
+		}
+
+		public ApduOperationResult(OperationResult operationResult, bool isApduCommandSuccessful)
 			: base(
 			operationResult.IsSuccessful,
 			operationResult.StatusCode,
 			operationResult.StatusName,
 			operationResult.StatusDescription)
 		{
+			IsApduCommandSuccessful = isApduCommandSuccessful;
 		}
 	}
 }
