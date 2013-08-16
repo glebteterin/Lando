@@ -87,6 +87,7 @@ namespace Lando.Watcher
 			_started = true;
 
 			_workingThread = new Thread(Watch);
+			_workingThread.IsBackground = true;
 			_workingThread.Start();
 		}
 
