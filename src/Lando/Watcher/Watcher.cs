@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using Lando.LowLevel;
-using Lando.LowLevel.Enums;
 using Lando.LowLevel.ResultsTypes;
 using NLog;
 
@@ -75,8 +74,7 @@ namespace Lando.Watcher
 
 						_cardreadersNumber++;
 
-						SendOrPostCallback cb = state => CardreaderConnected(null, new WatcherCardreaderEventArgs(readerName));
-						AsyncOperation.Post(cb, null);
+						RaiseCardreaderConnectedEvent(readerName);
 					}
 				}
 			}
@@ -157,8 +155,7 @@ namespace Lando.Watcher
 								{
 									connectedLowlevelCard.IdBytes = result.Bytes;
 
-									SendOrPostCallback cb = state => CardConnected(null, new WatcherCardEventArgs(connectedLowlevelCard));
-									AsyncOperation.Post(cb, null);
+									RaiseCardConnectedEvent(connectedLowlevelCard);
 								}
 								else
 								{
@@ -166,9 +163,7 @@ namespace Lando.Watcher
 									{
 										_cardreadersNumber--;
 
-										SendOrPostCallback cb =
-											state => CardreaderDisconnected(null, new WatcherCardreaderEventArgs(cardreaderStatus.Name));
-										AsyncOperation.Post(cb, null);
+										RaiseCardreaderDisconnectedEvent(cardreaderStatus);
 
 										RemoveCardreaderFromList(cardreaderStatus.Name);
 									}
@@ -184,9 +179,7 @@ namespace Lando.Watcher
 							{
 								_cardreadersNumber--;
 
-								SendOrPostCallback cb =
-									state => CardreaderDisconnected(null, new WatcherCardreaderEventArgs(cardreaderStatus.Name));
-								AsyncOperation.Post(cb, null);
+								RaiseCardreaderDisconnectedEvent(cardreaderStatus);
 
 								RemoveCardreaderFromList(cardreaderStatus.Name);
 							}
@@ -210,16 +203,13 @@ namespace Lando.Watcher
 							// cardreaderStatus.CurrentStatusFlags != 0
 							// means that this is not a new cardreader status and it has some previous status
 							// cause otherways it doesn't make sense
-							SendOrPostCallback cb = state => CardDisconnected(null, new WatcherCardEventArgs());
-							AsyncOperation.Post(cb, null);
+							RaiseCardDisconnectedEvent();
 						}
 						if (newStatuses.Contains(CardreaderStatus.StatusType.CardreaderDisconnected))
 						{
 							_cardreadersNumber--;
 
-							SendOrPostCallback cb =
-								state => CardreaderDisconnected(null, new WatcherCardreaderEventArgs(cardreaderStatus.Name));
-							AsyncOperation.Post(cb, null);
+							RaiseCardreaderDisconnectedEvent(cardreaderStatus);
 
 							RemoveCardreaderFromList(cardreaderStatus.Name);
 						}
@@ -232,6 +222,31 @@ namespace Lando.Watcher
 					}
 				}
 			}
+		}
+
+		private void RaiseCardConnectedEvent(Card connectedLowlevelCard)
+		{
+			SendOrPostCallback cb = state => CardConnected(null, new WatcherCardEventArgs(connectedLowlevelCard));
+			AsyncOperation.Post(cb, null);
+		}
+
+		private void RaiseCardDisconnectedEvent()
+		{
+			SendOrPostCallback cb = state => CardDisconnected(null, new WatcherCardEventArgs());
+			AsyncOperation.Post(cb, null);
+		}
+
+		private void RaiseCardreaderConnectedEvent(string readerName)
+		{
+			SendOrPostCallback cb = state => CardreaderConnected(null, new WatcherCardreaderEventArgs(readerName));
+			AsyncOperation.Post(cb, null);
+		}
+
+		private void RaiseCardreaderDisconnectedEvent(CardreaderStatus cardreaderStatus)
+		{
+			SendOrPostCallback cb =
+				state => CardreaderDisconnected(null, new WatcherCardreaderEventArgs(cardreaderStatus.Name));
+			AsyncOperation.Post(cb, null);
 		}
 
 		private void RemoveCardreaderFromList(string cardreaderName)
