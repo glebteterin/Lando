@@ -2,6 +2,7 @@
 using Lando.LowLevel;
 using Lando.Watcher;
 using Lando.Extensions;
+using NLog;
 
 namespace Lando
 {
@@ -10,6 +11,8 @@ namespace Lando
 	/// </summary>
 	public class Cardreader
 	{
+		private static readonly Logger Logger = LogManager.GetLogger("LandoLog");
+
 		internal readonly LowLevelCardReader LowlevelReader;
 		internal readonly Watcher.Watcher Reader;
 
@@ -84,13 +87,15 @@ namespace Lando
 
 		internal virtual void OnCardreaderConnected(object sender, WatcherCardreaderEventArgs e)
 		{
-			//send notification to external subscriber
+			Logger.Trace("Save invocation of CardreaderConnected");
+
 			CardreaderConnected.SafeInvoke(this, new CardreaderEventArgs(e.CardreaderName));
 		}
 
 		internal virtual void OnCardreaderDisconnected(object sender, WatcherCardreaderEventArgs e)
 		{
-			//send notification to external subscriber
+			Logger.Trace("Save invocation of CardreaderDisconnected");
+
 			CardreaderDisconnected.SafeInvoke(this, new CardreaderEventArgs(e.CardreaderName));
 		}
 
@@ -98,13 +103,15 @@ namespace Lando
 		{
 			var card = new ContactlessCard(e.Card);
 
-			//send notification to external subscriber
+			Logger.Trace("Save invocation of CardConnected");
+
 			CardConnected.SafeInvoke(this, new CardreaderEventArgs(card, e.Card.CardreaderName));
 		}
 
 		internal virtual void OnCardDisconnected(object sender, WatcherCardEventArgs e)
 		{
-			//send notification to external subscriber
+			Logger.Trace("Save invocation of CardDisconnected");
+
 			CardDisconnected.SafeInvoke(this, new CardreaderEventArgs((string)null));
 		}
 	}
