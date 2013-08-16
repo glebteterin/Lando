@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using NLog;
 using NUnit.Framework;
 
 namespace Lando.UnitTests.Integration
@@ -8,6 +9,8 @@ namespace Lando.UnitTests.Integration
 	[Explicit]
 	public class HighLevelIntegrationTests
 	{
+		private static readonly Logger Logger = LogManager.GetLogger("LandoLog");
+
 		private readonly Cardreader _reader = new Cardreader();
 
 		private int _flag = 0;
@@ -18,6 +21,8 @@ namespace Lando.UnitTests.Integration
 		{
 			_reader.CardConnected += (sender, args) =>
 			{
+				Logger.Debug("Card Connected");
+
 				SetRed(args.Card);
 
 				// emulation of DB polling
@@ -38,7 +43,7 @@ namespace Lando.UnitTests.Integration
 					case 2: SetRedAndLongBeep(args.Card); _flag = 0; break;
 				}
 			};
-			_reader.CardDisconnected += (sender, args) => Console.WriteLine("Card Disconnected");
+			_reader.CardDisconnected += (sender, args) => { Logger.Debug("Card Disconnected"); Console.WriteLine("Card Disconnected"); };
 			_reader.CardreaderConnected += (sender, args) => Console.WriteLine("Cardreader Connected : " + args.CardreaderName);
 			_reader.CardreaderDisconnected += (sender, args) => Console.WriteLine("Cardreader Disconnected : " + args.CardreaderName);
 

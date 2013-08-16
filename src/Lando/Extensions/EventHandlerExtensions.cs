@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Lando.Extensions
+﻿namespace Lando.Extensions
 {
 	public static class EventHandlerExtensions
 	{

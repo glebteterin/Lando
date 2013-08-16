@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
@@ -15,6 +16,7 @@ namespace Lando.Watcher
 		private const string PnpNotification = "\\\\?PnP?\\Notification";
 
 		private static readonly AsyncOperation AsyncOperation = AsyncOperationManager.CreateOperation(null);
+		private readonly ConcurrentDictionary<string, bool> _attachedCardStatuses = new ConcurrentDictionary<string, bool>();
 		private readonly List<CardreaderStatus> _statuses = new List<CardreaderStatus>();
 		private readonly LowLevelCardReader _cardreader;
 
@@ -153,9 +155,14 @@ namespace Lando.Watcher
 
 								if (result.IsCompletelySuccessful)
 								{
-									connectedLowlevelCard.IdBytes = result.Bytes;
+									if (!DidCardreaderHaveConnectedCard(cardreaderStatus.Name))
+									{
+										connectedLowlevelCard.IdBytes = result.Bytes;
 
-									RaiseCardConnectedEvent(connectedLowlevelCard);
+										RememberCardreaderHadCard(cardreaderStatus.Name);
+
+										RaiseCardConnectedEvent(connectedLowlevelCard);
+									}
 								}
 								else
 								{
@@ -203,7 +210,13 @@ namespace Lando.Watcher
 							// cardreaderStatus.CurrentStatusFlags != 0
 							// means that this is not a new cardreader status and it has some previous status
 							// cause otherways it doesn't make sense
-							RaiseCardDisconnectedEvent();
+
+							if (DidCardreaderHaveConnectedCard(cardreaderStatus.Name))
+							{
+								// reset previously connected card and raise the card connected event
+								ForgotAboutCardreaderHadCard(cardreaderStatus.Name);
+								RaiseCardDisconnectedEvent();
+							}
 						}
 						if (newStatuses.Contains(CardreaderStatus.StatusType.CardreaderDisconnected))
 						{
@@ -226,27 +239,59 @@ namespace Lando.Watcher
 
 		private void RaiseCardConnectedEvent(Card connectedLowlevelCard)
 		{
+			Logger.Trace("Raising CardConnected event");
+
 			SendOrPostCallback cb = state => CardConnected(null, new WatcherCardEventArgs(connectedLowlevelCard));
 			AsyncOperation.Post(cb, null);
 		}
 
 		private void RaiseCardDisconnectedEvent()
 		{
+			Logger.Trace("Raising CardDisconnected event");
+
 			SendOrPostCallback cb = state => CardDisconnected(null, new WatcherCardEventArgs());
 			AsyncOperation.Post(cb, null);
 		}
 
 		private void RaiseCardreaderConnectedEvent(string readerName)
 		{
+			Logger.Trace("Raising CardreaderConnected event");
+
 			SendOrPostCallback cb = state => CardreaderConnected(null, new WatcherCardreaderEventArgs(readerName));
 			AsyncOperation.Post(cb, null);
 		}
 
 		private void RaiseCardreaderDisconnectedEvent(CardreaderStatus cardreaderStatus)
 		{
+			Logger.Trace("Raising CardreaderDisconnected event");
+
 			SendOrPostCallback cb =
 				state => CardreaderDisconnected(null, new WatcherCardreaderEventArgs(cardreaderStatus.Name));
 			AsyncOperation.Post(cb, null);
+		}
+
+		private bool DidCardreaderHaveConnectedCard(string cardreaderName)
+		{
+			bool hadAttachedCard;
+			_attachedCardStatuses.TryGetValue(cardreaderName, out hadAttachedCard);
+
+			Logger.Trace("Checking for a previously connected card. Result: " + hadAttachedCard);
+
+			return hadAttachedCard;
+		}
+
+		private void RememberCardreaderHadCard(string readerName)
+		{
+			Logger.Trace("Marking that cardreader ({0}) had a card", readerName);
+
+			_attachedCardStatuses.TryAdd(readerName, true);
+		}
+
+		private void ForgotAboutCardreaderHadCard(string readerName)
+		{
+			Logger.Trace("Forgetting that the previously connected card of {0}", readerName);
+
+			_attachedCardStatuses.TryUpdate(readerName, false, true);
 		}
 
 		private void RemoveCardreaderFromList(string cardreaderName)
