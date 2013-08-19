@@ -285,7 +285,7 @@ namespace Lando.Watcher
 		{
 			Logger.Trace("Marking that cardreader ({0}) had a card", readerName);
 
-			_attachedCardStatuses.TryAdd(readerName, true);
+			_attachedCardStatuses.AddOrUpdate(readerName, true, (key, newValue) => true);
 		}
 
 		private void ForgotAboutCardreaderHadCard(string readerName)
