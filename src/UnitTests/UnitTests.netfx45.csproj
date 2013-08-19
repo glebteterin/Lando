@@ -54,7 +54,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Lando\Lando.csproj">
+    <ProjectReference Include="..\Lando\Lando.netfx45.csproj">
       <Project>{57d7833d-fb79-4ff5-af1a-be59a41dbdc5}</Project>
       <Name>Lando</Name>
     </ProjectReference>

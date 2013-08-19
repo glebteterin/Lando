@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lando", "Lando\Lando.csproj", "{57D7833D-FB79-4FF5-AF1A-BE59A41DBDC5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lando", "Lando\Lando.netfx40.csproj", "{57D7833D-FB79-4FF5-AF1A-BE59A41DBDC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{19C3442D-8539-44A9-ABF8-DEF5892D255D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.netfx40.csproj", "{19C3442D-8539-44A9-ABF8-DEF5892D255D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
