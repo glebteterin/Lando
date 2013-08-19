@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+
+  <PropertyGroup>
+    <MajorMinorVersion>1.0</MajorMinorVersion>
+    <BuildProductName>Lando v1.0</BuildProductName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
+    <BaseOutputDirectory>$(MSBuildProjectDirectory)\..\build\</BaseOutputDirectory>
+    <ProjectTarget Condition="'$(ProjectTarget)'==''">Build</ProjectTarget>
+    <FrameworksPath>$(MSBuildProjectDirectory)\Frameworks</FrameworksPath>    
+    <BuildAllFrameworks>true</BuildAllFrameworks>
+    <IgnoreBuildFailures>false</IgnoreBuildFailures>
+    <ConfigurationSuffix Condition="'$(Configuration)' == 'Debug'">-debug</ConfigurationSuffix>
+    <BuildInfoFile>$(BaseOutputDirectory)\bin\BuildInfo.cs</BuildInfoFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DotNet4Version>v4.0.30319</DotNet4Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BuildAllFrameworks)' == 'true'">
+    <BuildNetFX40>true</BuildNetFX40>
+    <BuildNetFX45>true</BuildNetFX45>
+
+    <!-- don't build 4.0 or above if we're using MSBuild 3.5 -->
+    <BuildNetFX40 Condition="'$(MSBuildToolsVersion)'=='3.5'">false</BuildNetFX40>
+    <BuildNetFX45 Condition="'$(MSBuildToolsVersion)'=='3.5'">false</BuildNetFX45>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TargetFramework Include=".NET Framework 4.0" Condition="'$(BuildNetFX40)'=='true'">
+        <ProjectFileSuffix>.netfx40</ProjectFileSuffix>
+        <ToolsVersion>4.0</ToolsVersion>
+    </TargetFramework>
+    <TargetFramework Include=".NET Framework 4.5" Condition="'$(BuildNetFX45)'=='true'">
+        <ProjectFileSuffix>.netfx45</ProjectFileSuffix>
+        <ToolsVersion>4.0</ToolsVersion>
+    </TargetFramework>
+  </ItemGroup>
+
+  <Target Name="All" DependsOnTargets="DeepClean;Clean;Build">
+  </Target>
+
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build">
+  </Target>
+
+  <Target Name="Build">
+    <PropertyGroup>
+        <BuildInfoFileContent>
+// automatically generated
+[assembly: System.Reflection.AssemblyProduct("$(BuildProductName)")]
+</BuildInfoFileContent>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(BaseOutputDirectory)\bin" />
+
+    <ReadLinesFromFile File="$(BuildInfoFile)" Condition="Exists('$(BuildInfoFile)')">
+        <Output TaskParameter="Lines" ItemName="CurrentBuildInfoFileContent" />
+    </ReadLinesFromFile>
+
+    <WriteLinesToFile File="$(BuildInfoFile)" 
+            Lines='$(BuildInfoFileContent)'
+            Overwrite="true" 
+            Condition="'$(BuildInfoFileContent)' != '@(CurrentBuildInfoFileContent)' " />
+    <MSBuild Projects="Lando\Lando%(TargetFramework.ProjectFileSuffix).csproj" 
+             Targets="Build" 
+             Properties="%(TargetFramework.Properties);BaseOutputDirectory=$(BaseOutputDirectory);BuildInfoFile=$(BuildInfoFile)" 
+             ToolsVersion="%(TargetFramework.ToolsVersion)" 
+             ContinueOnError="$(IgnoreBuildFailures)" 
+             StopOnFirstFailure="false" />
+  </Target>
+  
+  <Target Name="Clean">
+     <RemoveDir Directories="@(TargetFramework -> '$(BaseOutputDirectory)bin\$(Configuration)\%(Identity)')" />
+     <RemoveDir Directories="@(TargetFramework -> '$(BaseOutputDirectory)obj\$(Configuration)\%(Identity)')" />
+  </Target>
+
+  <ItemGroup>
+    <FilesToCleanup Include="..\**\*.suo" />
+    <FilesToCleanup Include="..\**\*.ncb" />
+    <FilesToCleanup Include="..\**\*.user" />
+    <FilesToCleanup Include="..\**\*.cache" />
+    <DirectoriesToCleanup Include="_ReSharper.*" />
+    <DirectoriesToCleanup Include="..\build\bin" />
+    <DirectoriesToCleanup Include="..\build\obj" />
+    <SolutionFiles Include="..\**\*.sln" />
+  </ItemGroup>
+
+  <Target Name="DeepClean">
+     <Delete Files="@(FilesToCleanup)" />
+     <RemoveDir Directories="@(DirectoriesToCleanup)" />
+     <RemoveDir Directories="@(ProjectsToCleanup -> '%(Identity)\bin')" />
+     <RemoveDir Directories="@(ProjectsToCleanup -> '%(Identity)\obj')" />
+     <RemoveDir Directories="@(SolutionFiles -> '%(RelativeDir)_ReSharper.%(filename)')" />
+  </Target>
+</Project>
