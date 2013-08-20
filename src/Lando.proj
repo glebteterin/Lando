@@ -67,7 +67,7 @@
             Condition="'$(BuildInfoFileContent)' != '@(CurrentBuildInfoFileContent)' " />
     <MSBuild Projects="Lando\Lando%(TargetFramework.ProjectFileSuffix).csproj" 
              Targets="Build" 
-             Properties="%(TargetFramework.Properties);BaseOutputDirectory=$(BaseOutputDirectory);BuildInfoFile=$(BuildInfoFile)" 
+             Properties="%(TargetFramework.Properties);BaseOutputDirectory=$(BaseOutputDirectory);BuildInfoFile=$(BuildInfoFile);SolutionDir=$(MSBuildProjectDirectory)\" 
              ToolsVersion="%(TargetFramework.ToolsVersion)" 
              ContinueOnError="$(IgnoreBuildFailures)" 
              StopOnFirstFailure="false" />

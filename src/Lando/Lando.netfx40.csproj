@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-	<OutputPath>..\..\build\bin\Debug\.NET Framework 4.0\</OutputPath>
+	<OutputPath>bin\Debug\netfx40\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-	<OutputPath>..\..\build\bin\Release\.NET Framework 4.0\</OutputPath>
+	<OutputPath>bin\Release\netfx40\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -78,11 +78,16 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
+  
   <Target Name="AfterBuild">
-  </Target>
-  -->
+  <ItemGroup>
+   <OutputFiles Include="$(TargetDir)\*.dll" />
+  </ItemGroup>
+  <PropertyGroup>
+   <BinOutput>$(SolutionDir)..\build\bin\Debug\.NET Framework 4.0</BinOutput>
+  </PropertyGroup>
+  <MakeDir Directories="$(BinOutput)" />
+  <Exec WorkingDirectory="$(TargetDir)" Command="&quot;$(SolutionDir)..\Tools\Ilmerge.exe&quot; /target:library /out:&quot;$(BinOutput)\$(TargetFileName)&quot; /targetplatform:v4,$(MSBuildBinPath) @(OutputFiles->'&quot;%(FullPath)&quot;', ' ')" />
+ </Target>
+ 
 </Project>
