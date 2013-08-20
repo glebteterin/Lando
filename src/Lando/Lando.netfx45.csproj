@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-	<OutputPath>..\..\build\bin\Debug\.NET Framework 4.5\</OutputPath>
+	<OutputPath>bin\Debug\netfx45\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-	<OutputPath>..\..\build\bin\Release\.NET Framework 4.5\</OutputPath>
+	<OutputPath>bin\Release\netfx45\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -32,7 +32,10 @@
   <ItemGroup>
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.2.0.1.2\lib\net45\NLog.dll</HintPath>
+	  <IlMerge>True</IlMerge>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -78,11 +81,16 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
+  
   <Target Name="AfterBuild">
-  </Target>
-  -->
+  <ItemGroup>
+   <OutputFiles Include="$(TargetDir)\*.dll" />
+  </ItemGroup>
+  <PropertyGroup>
+   <BinOutput>$(SolutionDir)..\build\bin\Debug\.NET Framework 4.5</BinOutput>
+  </PropertyGroup>
+  <MakeDir Directories="$(BinOutput)" />
+  <Exec WorkingDirectory="$(TargetDir)" Command="&quot;$(SolutionDir)..\Tools\Ilmerge.exe&quot; /target:library /out:&quot;$(BinOutput)\$(TargetFileName)&quot; /targetplatform:v4,$(MSBuildBinPath) @(OutputFiles->'&quot;%(FullPath)&quot;', ' ')" />
+ </Target>
+
 </Project>
