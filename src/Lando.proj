@@ -14,7 +14,6 @@
     <BuildAllFrameworks>true</BuildAllFrameworks>
     <IgnoreBuildFailures>false</IgnoreBuildFailures>
     <ConfigurationSuffix Condition="'$(Configuration)' == 'Debug'">-debug</ConfigurationSuffix>
-    <BuildInfoFile>$(BaseOutputDirectory)\bin\BuildInfo.cs</BuildInfoFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -57,17 +56,9 @@
 
     <MakeDir Directories="$(BaseOutputDirectory)\bin" />
 
-    <ReadLinesFromFile File="$(BuildInfoFile)" Condition="Exists('$(BuildInfoFile)')">
-        <Output TaskParameter="Lines" ItemName="CurrentBuildInfoFileContent" />
-    </ReadLinesFromFile>
-
-    <WriteLinesToFile File="$(BuildInfoFile)" 
-            Lines='$(BuildInfoFileContent)'
-            Overwrite="true" 
-            Condition="'$(BuildInfoFileContent)' != '@(CurrentBuildInfoFileContent)' " />
     <MSBuild Projects="Lando\Lando%(TargetFramework.ProjectFileSuffix).csproj" 
              Targets="Build" 
-             Properties="%(TargetFramework.Properties);BaseOutputDirectory=$(BaseOutputDirectory);BuildInfoFile=$(BuildInfoFile);SolutionDir=$(MSBuildProjectDirectory)\" 
+             Properties="%(TargetFramework.Properties);BaseOutputDirectory=$(BaseOutputDirectory);SolutionDir=$(MSBuildProjectDirectory)\" 
              ToolsVersion="%(TargetFramework.ToolsVersion)" 
              ContinueOnError="$(IgnoreBuildFailures)" 
              StopOnFirstFailure="false" />
