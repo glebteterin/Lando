@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Lando.LowLevel.Enums;
 using Lando.LowLevel.ResultsTypes;
-using NLog;
 
 namespace Lando.LowLevel
 {
 	internal class LowLevelCardReader : IDisposable
 	{
-		private static readonly Logger Logger = LogManager.GetLogger("LandoLog");
+		private static readonly TraceSource Logger = new TraceSource("Lando");
 
 		private static readonly int PciLength = System.Runtime.InteropServices.Marshal.SizeOf(typeof(WinscardWrapper.SCARD_IO_REQUEST));
 
@@ -41,7 +41,7 @@ namespace Lando.LowLevel
 
 				if (returnCode == WinscardWrapper.SCARD_S_SUCCESS)
 				{
-					Logger.Debug("Context established");
+					Logger.TraceInformation("Context established");
 					_isConnected = true;
 				}
 
@@ -63,7 +63,7 @@ namespace Lando.LowLevel
 
 				if (operationResult.IsSuccessful)
 				{
-					Logger.Debug("Context released");
+					Logger.TraceInformation("Context released");
 					_isConnected = true;
 				}
 
@@ -119,7 +119,7 @@ namespace Lando.LowLevel
 			for (var i = 0; i < statuses.Length; i++)
 				scardStatuses[i] = statuses[i].ToScardStatus();
 
-			Logger.Trace("SCardGetStatusChange started");
+			Logger.TraceInformation("SCardGetStatusChange started");
 
 			var returnCode = WinscardWrapper.SCardGetStatusChange(
 				_resourceManagerContext,
@@ -127,7 +127,7 @@ namespace Lando.LowLevel
 				scardStatuses,
 				scardStatuses.Length);
 
-			Logger.Trace("SCardGetStatusChange ended");
+			Logger.TraceInformation("SCardGetStatusChange ended");
 
 			var operationResult = ReturnCodeManager.GetErrorMessage(returnCode);
 
@@ -285,8 +285,8 @@ namespace Lando.LowLevel
 			pioSendRequest.dwProtocol = card.Protocol;
 			pioSendRequest.cbPciLength = PciLength;
 
-			Logger.Trace("SendAPDU started");
-			Logger.Trace("bytesToSend: {0}", BitConverter.ToString(bytesToSend));
+			Logger.TraceInformation("SendAPDU started");
+			Logger.TraceInformation("bytesToSend: {0}", BitConverter.ToString(bytesToSend));
 
 			int returnCode = WinscardWrapper.SCardTransmit(
 				card.ConnectionHandle, ref pioSendRequest,
@@ -294,7 +294,7 @@ namespace Lando.LowLevel
 				ref pioSendRequest, ref recvBuff[0],
 				ref expectedRequestLength);
 
-			Logger.Trace("SendAPDU ended");
+			Logger.TraceInformation("SendAPDU ended");
 
 			//http://msdn.microsoft.com/en-us/library/windows/desktop/aa379804(v=vs.85).aspx
 			//The pcbRecvLength should be at least n+2 and will be set to n+2 upon return.

@@ -1,17 +1,17 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Lando.LowLevel;
 using Lando.LowLevel.ResultsTypes;
-using NLog;
 
 namespace Lando.Watcher
 {
 	internal class Watcher
 	{
-		private static readonly Logger Logger = LogManager.GetLogger("LandoLog");
+		private static readonly TraceSource Logger = new TraceSource("Lando");
 
 		private const string PnpNotification = "\\\\?PnP?\\Notification";
 
@@ -112,7 +112,7 @@ namespace Lando.Watcher
 					// so check for that
 					if (_started)
 					{
-						Logger.Error("WaitForChanges operation result is " + operationResult.StatusName);
+						Logger.TraceInformation("WaitForChanges operation result is " + operationResult.StatusName);
 
 						throw new SmartCardException(operationResult);
 					}
@@ -240,7 +240,7 @@ namespace Lando.Watcher
 
 		private void RaiseCardConnectedEvent(Card connectedLowlevelCard)
 		{
-			Logger.Trace("Raising CardConnected event");
+			Logger.TraceInformation("Raising CardConnected event");
 
 			SendOrPostCallback cb = state => CardConnected(null, new WatcherCardEventArgs(connectedLowlevelCard));
 			AsyncOperation.Post(cb, null);
@@ -248,7 +248,7 @@ namespace Lando.Watcher
 
 		private void RaiseCardDisconnectedEvent()
 		{
-			Logger.Trace("Raising CardDisconnected event");
+			Logger.TraceInformation("Raising CardDisconnected event");
 
 			SendOrPostCallback cb = state => CardDisconnected(null, new WatcherCardEventArgs());
 			AsyncOperation.Post(cb, null);
@@ -256,7 +256,7 @@ namespace Lando.Watcher
 
 		private void RaiseCardreaderConnectedEvent(string readerName)
 		{
-			Logger.Trace("Raising CardreaderConnected event");
+			Logger.TraceInformation("Raising CardreaderConnected event");
 
 			SendOrPostCallback cb = state => CardreaderConnected(null, new WatcherCardreaderEventArgs(readerName));
 			AsyncOperation.Post(cb, null);
@@ -264,7 +264,7 @@ namespace Lando.Watcher
 
 		private void RaiseCardreaderDisconnectedEvent(CardreaderStatus cardreaderStatus)
 		{
-			Logger.Trace("Raising CardreaderDisconnected event");
+			Logger.TraceInformation("Raising CardreaderDisconnected event");
 
 			SendOrPostCallback cb =
 				state => CardreaderDisconnected(null, new WatcherCardreaderEventArgs(cardreaderStatus.Name));
@@ -276,21 +276,21 @@ namespace Lando.Watcher
 			bool hadAttachedCard;
 			_attachedCardStatuses.TryGetValue(cardreaderName, out hadAttachedCard);
 
-			Logger.Trace("Checking for a previously connected card. Result: " + hadAttachedCard);
+			Logger.TraceInformation("Checking for a previously connected card. Result: " + hadAttachedCard);
 
 			return hadAttachedCard;
 		}
 
 		private void RememberCardreaderHadCard(string readerName)
 		{
-			Logger.Trace("Marking that cardreader ({0}) had a card", readerName);
+			Logger.TraceInformation("Marking that cardreader ({0}) had a card", readerName);
 
 			_attachedCardStatuses.AddOrUpdate(readerName, true, (key, newValue) => true);
 		}
 
 		private void ForgotAboutCardreaderHadCard(string readerName)
 		{
-			Logger.Trace("Forgetting that the previously connected card of {0}", readerName);
+			Logger.TraceInformation("Forgetting that the previously connected card of {0}", readerName);
 
 			_attachedCardStatuses.TryUpdate(readerName, false, true);
 		}
@@ -313,10 +313,10 @@ namespace Lando.Watcher
 		{
 			foreach (var cardreaderStatus in statuses)
 			{
-				Logger.Trace("New statuses for {0}:", cardreaderStatus.Name);
+				Logger.TraceInformation("New statuses for {0}:", cardreaderStatus.Name);
 				foreach (var statusType in cardreaderStatus.Statuses)
 				{
-					Logger.Trace("Status: {0}", statusType);
+					Logger.TraceInformation("Status: {0}", statusType);
 				}
 			}
 		}
