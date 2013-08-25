@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using Lando.LowLevel;
 using Lando.Watcher;
 using Lando.Extensions;
-using NLog;
 
 namespace Lando
 {
@@ -11,7 +11,7 @@ namespace Lando
 	/// </summary>
 	public class Cardreader
 	{
-		private static readonly Logger Logger = LogManager.GetLogger("LandoLog");
+		private static readonly TraceSource Logger = new TraceSource("Lando");
 
 		internal readonly LowLevelCardReader LowlevelReader;
 		internal readonly Watcher.Watcher Reader;
@@ -87,14 +87,14 @@ namespace Lando
 
 		internal virtual void OnCardreaderConnected(object sender, WatcherCardreaderEventArgs e)
 		{
-			Logger.Trace("Save invocation of CardreaderConnected");
+			Logger.TraceInformation("Save invocation of CardreaderConnected");
 
 			CardreaderConnected.SafeInvoke(this, new CardreaderEventArgs(e.CardreaderName));
 		}
 
 		internal virtual void OnCardreaderDisconnected(object sender, WatcherCardreaderEventArgs e)
 		{
-			Logger.Trace("Save invocation of CardreaderDisconnected");
+			Logger.TraceInformation("Save invocation of CardreaderDisconnected");
 
 			CardreaderDisconnected.SafeInvoke(this, new CardreaderEventArgs(e.CardreaderName));
 		}
@@ -103,14 +103,14 @@ namespace Lando
 		{
 			var card = new ContactlessCard(e.Card);
 
-			Logger.Trace("Save invocation of CardConnected");
+			Logger.TraceInformation("Save invocation of CardConnected");
 
 			CardConnected.SafeInvoke(this, new CardreaderEventArgs(card, e.Card.CardreaderName));
 		}
 
 		internal virtual void OnCardDisconnected(object sender, WatcherCardEventArgs e)
 		{
-			Logger.Trace("Save invocation of CardDisconnected");
+			Logger.TraceInformation("Save invocation of CardDisconnected");
 
 			CardDisconnected.SafeInvoke(this, new CardreaderEventArgs((string)null));
 		}
