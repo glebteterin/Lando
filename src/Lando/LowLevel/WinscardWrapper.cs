@@ -207,7 +207,7 @@ namespace Lando.LowLevel
 		/// <summary>
 		/// The SCardListReaders function provides the list of readers within a set of named reader groups, eliminating duplicates.
 		/// </summary>
-		[DllImport("winscard.DLL", EntryPoint = "SCardListReadersA", CharSet = CharSet.Ansi)]
+		[DllImport("winscard.dll", EntryPoint = "SCardListReaders")]
 		public static extern int SCardListReaders(IntPtr hContext, byte[] mszGroups, byte[] mszReaders, ref int pcchReaders);
 
 		/// <summary>
