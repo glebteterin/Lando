@@ -143,7 +143,7 @@ namespace Lando.Watcher
 						// CardUnresponsive status means that card was removed too fast
 
 						if (newStatuses.Contains(CardreaderStatus.StatusType.CardConnected) &&
-							!newStatuses.Contains(CardreaderStatus.StatusType.CardInUse) &&
+							!DidCardreaderHaveConnectedCard(cardreaderStatus.Name) &&
 							!newStatuses.Contains(CardreaderStatus.StatusType.CardUnresponsive))
 						{
 							var connectResult = _cardreader.Connect(cardreaderStatus.Name);
