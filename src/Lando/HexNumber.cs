@@ -25,8 +25,8 @@ namespace Lando
 
 		public HexNumber(Int16 decNumber)
 		{
-			if (0 > decNumber || decNumber > 15)
-				throw new ArgumentOutOfRangeException("decNumber", "Parameter should be between 0 and 15");
+			if (0 > decNumber || decNumber > 255)
+				throw new ArgumentOutOfRangeException("decNumber", "Parameter should be between 0 and 255");
 
 			Value = Convert.ToByte(decNumber);
 		}
