@@ -193,10 +193,14 @@ namespace Lando.LowLevel
 
 		private static bool Check90_00(byte[] receiveBytes, int fullResponseLength)
 		{
-			var firstIndex = fullResponseLength - 2;
+			var firstByte = fullResponseLength - 2;
+			var secondByte = firstByte + 1;
+
+			if (firstByte <= 0 || firstByte >= receiveBytes.Length || secondByte >= receiveBytes.Length)
+				return false;
 
 			var result = false;
-			if (receiveBytes[firstIndex] == 144 && receiveBytes[firstIndex + 1] == 0) //90 00
+			if (receiveBytes[firstByte] == 144 && receiveBytes[secondByte] == 0) //90 00
 				result = true;
 
 			return result;
