@@ -4,6 +4,7 @@ namespace Lando.LowLevel
 {
 	internal class Card
 	{
+		internal int ThreadId { get; set; }
 		internal IntPtr ConnectionHandle { get; set; }
 		internal string CardreaderName { get; set; }
 		internal int Protocol { get; set; }
@@ -16,8 +17,9 @@ namespace Lando.LowLevel
 		public Card()
 		{}
 
-		internal Card(IntPtr connectionHandle, string cardreaderName, int protocol)
+		internal Card(int threadId, IntPtr connectionHandle, string cardreaderName, int protocol)
 		{
+			ThreadId = threadId;
 			ConnectionHandle = connectionHandle;
 			CardreaderName = cardreaderName;
 			Protocol = protocol;

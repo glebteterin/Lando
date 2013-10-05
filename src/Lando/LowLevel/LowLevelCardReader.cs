@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Lando.LowLevel.ResultsTypes;
 
 namespace Lando.LowLevel
@@ -12,11 +13,9 @@ namespace Lando.LowLevel
 
 		private static readonly int PciLength = System.Runtime.InteropServices.Marshal.SizeOf(typeof(WinscardWrapper.SCARD_IO_REQUEST));
 
+		private readonly ContextManager _contextManager = new ContextManager();
+
 		private readonly object _locker = new object();
-
-		private IntPtr _resourceManagerContext = IntPtr.Zero;
-
-		private bool _isConnected;
 
 		private bool _disposed;
 
@@ -27,49 +26,58 @@ namespace Lando.LowLevel
 		{
 			lock (_locker)
 			{
-				if (_resourceManagerContext != IntPtr.Zero)
+				if (_contextManager.IsContextExist(Thread.CurrentThread.ManagedThreadId))
 					return new OperationResult(true, WinscardWrapper.SCARD_S_SUCCESS, null, null);
 
+				IntPtr resourceManagerContext;
 				IntPtr notUsed1 = IntPtr.Zero;
 				IntPtr notUsed2 = IntPtr.Zero;
 
 				int returnCode = WinscardWrapper.SCardEstablishContext(WinscardWrapper.SCARD_SCOPE_USER,
 																		notUsed1,
 																		notUsed2,
-																		out _resourceManagerContext);
+																		out resourceManagerContext);
 
 				if (returnCode == WinscardWrapper.SCARD_S_SUCCESS)
 				{
 					Logger.TraceEvent(TraceEventType.Information, 0, "Context established");
 					Logger.Flush();
-					_isConnected = true;
+
+					_contextManager.AddContext(Thread.CurrentThread.ManagedThreadId, resourceManagerContext);
 				}
 
 				return ReturnCodeManager.GetErrorMessage(returnCode);
 			}
 		}
 
-		public OperationResult ReleaseContext()
+		public void ReleaseAllContexts()
 		{
 			lock (_locker)
 			{
-				if (!_isConnected)
-					throw new InvalidOperationException(
-						"You cannot call this method without esbablished context. Try call EstablishContext method first.");
+				var allThreads = _contextManager.GetAllThreads();
 
-				int returnCode = WinscardWrapper.SCardReleaseContext(_resourceManagerContext);
-
-				var operationResult = ReturnCodeManager.GetErrorMessage(returnCode);
-
-				if (operationResult.IsSuccessful)
+				foreach (var threadId in allThreads)
 				{
-					Logger.TraceEvent(TraceEventType.Information, 0, "Context released");
-					Logger.Flush();
-					_isConnected = true;
-				}
+					var threadContext = _contextManager.GetContext(threadId);
 
-				return operationResult;
+					var releaseResult = ReleaseContext(threadContext);
+
+					if (releaseResult.IsSuccessful)
+					{
+						Logger.TraceEvent(TraceEventType.Information, 0, string.Format("Context released. Thread {0}", threadId));
+						Logger.Flush();
+					}
+				}
 			}
+		}
+
+		private OperationResult ReleaseContext(IntPtr context)
+		{
+			int returnCode = WinscardWrapper.SCardReleaseContext(context);
+
+			var operationResult = ReturnCodeManager.GetErrorMessage(returnCode);
+
+			return operationResult;
 		}
 
 		/// <summary>
@@ -77,15 +85,14 @@ namespace Lando.LowLevel
 		/// </summary>
 		public OperationResult GetCardReadersList(out string[] readersList)
 		{
-			if (!_isConnected)
-				throw new InvalidOperationException("You cannot call this method without esbablished context. Try call EstablishContext method first.");
+			var resourceManagerContext = EstablishContextIfNotEstablished();
 
 			readersList = new string[0];
 
 			OperationResult result;
 			int sizeOfReadersListStructure = 0;
 
-			int returnCode = WinscardWrapper.SCardListReaders(_resourceManagerContext, null, null, ref sizeOfReadersListStructure);
+			int returnCode = WinscardWrapper.SCardListReaders(resourceManagerContext, null, null, ref sizeOfReadersListStructure);
 
 			if (returnCode != WinscardWrapper.SCARD_S_SUCCESS)
 			{
@@ -95,7 +102,7 @@ namespace Lando.LowLevel
 			{
 				// Fill reader list
 				var cardReadersList = new byte[sizeOfReadersListStructure];
-				returnCode = WinscardWrapper.SCardListReaders(_resourceManagerContext, null, cardReadersList, ref sizeOfReadersListStructure);
+				returnCode = WinscardWrapper.SCardListReaders(resourceManagerContext, null, cardReadersList, ref sizeOfReadersListStructure);
 
 				if (returnCode != WinscardWrapper.SCARD_S_SUCCESS)
 				{
@@ -115,6 +122,8 @@ namespace Lando.LowLevel
 
 		public OperationResult WaitForChanges(ref CardreaderStatus[] statuses)
 		{
+			var resourceManagerContext = EstablishContextIfNotEstablished();
+
 			var scardStatuses = new WinscardWrapper.SCARD_READERSTATE[statuses.Length];
 
 			for (var i = 0; i < statuses.Length; i++)
@@ -124,7 +133,7 @@ namespace Lando.LowLevel
 			Logger.Flush();
 
 			var returnCode = WinscardWrapper.SCardGetStatusChange(
-				_resourceManagerContext,
+				resourceManagerContext,
 				WinscardWrapper.INFINITE,
 				scardStatuses,
 				scardStatuses.Length);
@@ -149,15 +158,13 @@ namespace Lando.LowLevel
 		/// </summary>
 		public ConnectResult Connect(string cardreaderName)
 		{
-			if (!_isConnected)
-				throw new InvalidOperationException("You cannot call this method without esbablished context. "
-													+ "Try call EstablishContext method first.");
+			var resourceManagerContext = EstablishContextIfNotEstablished();
 
 			IntPtr cardConnectionHandle;
 			int connectionProtocolType;
 
 			int returnCode = WinscardWrapper.SCardConnect(
-				_resourceManagerContext,
+				resourceManagerContext,
 				cardreaderName,
 				WinscardWrapper.SCARD_SHARE_SHARED,
 				WinscardWrapper.SCARD_PROTOCOL_T0 | WinscardWrapper.SCARD_PROTOCOL_T1,
@@ -168,7 +175,11 @@ namespace Lando.LowLevel
 			var connectResult = new ConnectResult(operationResult);
 
 			if (operationResult.IsSuccessful)
-				connectResult.ConnectedCard = new Card(cardConnectionHandle, cardreaderName, connectionProtocolType);
+				connectResult.ConnectedCard = new Card(
+					Thread.CurrentThread.ManagedThreadId,
+					cardConnectionHandle,
+					cardreaderName,
+					connectionProtocolType);
 
 			return connectResult;
 		}
@@ -314,6 +325,19 @@ namespace Lando.LowLevel
 			return result;
 		}
 
+		private IntPtr EstablishContextIfNotEstablished()
+		{
+			var establishContextResult = EstablishContext();
+			if (!establishContextResult.IsSuccessful)
+				throw new Exception(
+					string.Format("Exception during context establishing for current thread ({0}). Error code: {1}",
+						Thread.CurrentThread.ManagedThreadId, establishContextResult.StatusCode));
+
+			var currentThreadContext = _contextManager.GetContext(Thread.CurrentThread.ManagedThreadId);
+
+			return currentThreadContext;
+		}
+
 		/// <summary>
 		/// Convert bytes structure to string list.
 		/// </summary>
@@ -372,8 +396,7 @@ namespace Lando.LowLevel
 					// Dispose managed resources here.
 				}
 
-				if (_isConnected)
-					ReleaseContext();
+				ReleaseAllContexts();
 			}
 
 			_disposed = true;

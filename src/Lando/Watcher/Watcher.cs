@@ -48,7 +48,7 @@ namespace Lando.Watcher
 			if (_started)
 			{
 				_started = false;
-				_cardreader.ReleaseContext();
+				_cardreader.ReleaseAllContexts();
 			}
 		}
 
