@@ -7,6 +7,8 @@ namespace Lando
 	{
 		internal Card Card { get; private set; }
 
+		internal string CardreaderName { get; private set; }
+
 		public string Id { get; private set; }
 
 		internal ContactlessCard(Card card)
@@ -14,6 +16,8 @@ namespace Lando
 			Id = BitConverter.ToString(card.IdBytes);
 
 			Card = card;
+
+			CardreaderName = card.CardreaderName;
 		}
 	}
 }

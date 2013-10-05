@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-	<OutputPath>..\..\build\bin\Debug\.NET Framework 4.0\</OutputPath>
+    <OutputPath>..\..\build\bin\Debug\.NET Framework 4.0\</OutputPath>
     <DefineConstants>DEBUG;TRACE;NET4_0</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-	<OutputPath>..\..\build\bin\Release\.NET Framework 4.0\</OutputPath>
+    <OutputPath>..\..\build\bin\Release\.NET Framework 4.0\</OutputPath>
     <DefineConstants>TRACE;NET4_0</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -50,6 +50,7 @@
     <Compile Include="LowLevel\Card.cs" />
     <Compile Include="LowLevel\CardreaderStatus.cs" />
     <Compile Include="LowLevel\CardState.cs" />
+    <Compile Include="LowLevel\ContextManager.cs" />
     <Compile Include="LowLevel\Enums\CardStateType.cs" />
     <Compile Include="LowLevel\LowLevelCardReader.cs" />
     <Compile Include="LowLevel\ResultsTypes\OperationResult.cs" />
@@ -68,5 +69,5 @@
     <Compile Include="Watcher\WatcherCardreaderEventHandlerDelegate.cs" />
     <Compile Include="Watcher\WatcherErrorEventHandlerDelegate.cs" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" /> 
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
