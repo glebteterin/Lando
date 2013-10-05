@@ -48,6 +48,7 @@
     <Compile Include="HexNumber.cs" />
     <Compile Include="LedBuzzerStatus.cs" />
     <Compile Include="LowLevel\Card.cs" />
+    <Compile Include="LowLevel\CardConnectionManager.cs" />
     <Compile Include="LowLevel\CardreaderStatus.cs" />
     <Compile Include="LowLevel\CardState.cs" />
     <Compile Include="LowLevel\ContextManager.cs" />

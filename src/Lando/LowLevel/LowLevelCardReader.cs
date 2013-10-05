@@ -14,6 +14,7 @@ namespace Lando.LowLevel
 		private static readonly int PciLength = System.Runtime.InteropServices.Marshal.SizeOf(typeof(WinscardWrapper.SCARD_IO_REQUEST));
 
 		private readonly ContextManager _contextManager = new ContextManager();
+		private readonly CardConnectionManager _cardConnectionManager = new CardConnectionManager();
 
 		private readonly object _locker = new object();
 
@@ -163,7 +164,7 @@ namespace Lando.LowLevel
 		/// Establishing a connection to smart card contained by a specific reader.
 		/// <param name="cardreaderName">Card reader name to connection.</param>
 		/// </summary>
-		public ConnectResult Connect(string cardreaderName)
+		public ConnectResult Connect(string cardreaderName, Guid? idOverride = null)
 		{
 			var resourceManagerContext = EstablishContextIfNotEstablished();
 
@@ -182,11 +183,20 @@ namespace Lando.LowLevel
 			var connectResult = new ConnectResult(operationResult);
 
 			if (operationResult.IsSuccessful)
-				connectResult.ConnectedCard = new Card(
+			{
+				var newCard = new Card(
 					Thread.CurrentThread.ManagedThreadId,
 					cardConnectionHandle,
 					cardreaderName,
 					connectionProtocolType);
+
+				_cardConnectionManager.AddConnection(
+					idOverride ?? newCard.InternalUid,
+					Thread.CurrentThread.ManagedThreadId,
+					cardConnectionHandle);
+
+				connectResult.ConnectedCard = newCard;
+			}
 
 			return connectResult;
 		}
@@ -292,7 +302,12 @@ namespace Lando.LowLevel
 			{
 				int returnCode = WinscardWrapper.SCardDisconnect(cardForDisconnect.ConnectionHandle, WinscardWrapper.SCARD_UNPOWER_CARD);
 				cardForDisconnect.ConnectionHandle = IntPtr.Zero;
-				return ReturnCodeManager.GetErrorMessage(returnCode);
+				var result = ReturnCodeManager.GetErrorMessage(returnCode);
+
+				if (result.IsSuccessful)
+					_cardConnectionManager.CardDisconnected(cardForDisconnect.InternalUid);
+
+				return result;
 			}
 
 			return OperationResult.Successful;
@@ -306,7 +321,6 @@ namespace Lando.LowLevel
 			Logger.Flush();
 
 			IntPtr cardConnectionHandle = card.ConnectionHandle;
-			bool disconnectAfterSent = false;
 
 			// establish a new temporary connection in case of context mismatch
 			if (card.ThreadId != Thread.CurrentThread.ManagedThreadId)
@@ -317,24 +331,34 @@ namespace Lando.LowLevel
 					Thread.CurrentThread.ManagedThreadId));
 				Logger.Flush();
 
-				// establish a new connection
-				var connectionResult = Connect(card.CardreaderName);
-				if (!connectionResult.IsSuccessful)
+				if (!_cardConnectionManager.IsConnectionExist(card.InternalUid, Thread.CurrentThread.ManagedThreadId))
 				{
-					return new ApduResponse
-								{
-									ReturnCode = connectionResult.StatusCode,
-									RecvBuff = new byte[0],
-									ResponseLength = 0
-								};
+					// establish a new connection
+					var connectionResult = Connect(card.CardreaderName, card.InternalUid);
+					if (!connectionResult.IsSuccessful)
+					{
+						return new ApduResponse
+									{
+										ReturnCode = connectionResult.StatusCode,
+										RecvBuff = new byte[0],
+										ResponseLength = 0
+									};
+					}
+
+					// use a handle of a new connection
+					cardConnectionHandle = connectionResult.ConnectedCard.ConnectionHandle;
+
+					Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU: new connection established. Handle: "
+																	+ cardConnectionHandle);
 				}
+				else
+				{
+					cardConnectionHandle = _cardConnectionManager
+						.GetConnection(card.InternalUid, Thread.CurrentThread.ManagedThreadId);
 
-				// use a handle of a new connection
-				cardConnectionHandle = connectionResult.ConnectedCard.ConnectionHandle;
-				disconnectAfterSent = true;
-
-				Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU: new connection established. Handle: " 
-					+ cardConnectionHandle);
+					Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU: existed card context found. Handle: "
+																	+ cardConnectionHandle);
+				}
 			}
 
 			var recvBuff = new byte[500];
@@ -349,7 +373,7 @@ namespace Lando.LowLevel
 				ref pioSendRequest, ref recvBuff[0],
 				ref expectedRequestLength);
 
-			Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU ended");
+			Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU ended. Return code: " + returnCode);
 			Logger.Flush();
 
 			//http://msdn.microsoft.com/en-us/library/windows/desktop/aa379804(v=vs.85).aspx
