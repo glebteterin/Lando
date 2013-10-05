@@ -71,6 +71,8 @@ namespace Lando.LowLevel
 					{
 						Logger.TraceEvent(TraceEventType.Information, 0, string.Format("Context released. Thread {0}", threadId));
 						Logger.Flush();
+
+						_contextManager.ContextReleased(threadId);
 					}
 				}
 			}
