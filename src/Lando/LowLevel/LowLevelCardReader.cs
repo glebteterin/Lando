@@ -27,7 +27,12 @@ namespace Lando.LowLevel
 			lock (_locker)
 			{
 				if (_contextManager.IsContextExist(Thread.CurrentThread.ManagedThreadId))
+				{
+					Logger.TraceEvent(TraceEventType.Information, 0, "Context is already established.");
+					Logger.Flush();
+
 					return new OperationResult(true, WinscardWrapper.SCARD_S_SUCCESS, null, null);
+				}
 
 				IntPtr resourceManagerContext;
 				IntPtr notUsed1 = IntPtr.Zero;
@@ -293,18 +298,51 @@ namespace Lando.LowLevel
 
 		private ApduResponse SendAPDU(Card card, byte[] bytesToSend, int expectedRequestLength)
 		{
+			Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU started");
+			Logger.TraceEvent(TraceEventType.Information, 0, "bytesToSend: {0}", BitConverter.ToString(bytesToSend));
+			Logger.TraceEvent(TraceEventType.Information, 0, "card connection handle: {0}", card.ConnectionHandle);
+			Logger.Flush();
+
+			IntPtr cardConnectionHandle = card.ConnectionHandle;
+			bool disconnectAfterSent = false;
+
+			// establish a new temporary connection in case of context mismatch
+			if (card.ThreadId != Thread.CurrentThread.ManagedThreadId)
+			{
+				Logger.TraceEvent(TraceEventType.Information, 0,
+					string.Format("Card context mismatch. Original thread: {0}. Current thread: {1}",
+					card.ThreadId,
+					Thread.CurrentThread.ManagedThreadId));
+				Logger.Flush();
+
+				// establish a new connection
+				var connectionResult = Connect(card.CardreaderName);
+				if (!connectionResult.IsSuccessful)
+				{
+					return new ApduResponse
+								{
+									ReturnCode = connectionResult.StatusCode,
+									RecvBuff = new byte[0],
+									ResponseLength = 0
+								};
+				}
+
+				// use a handle of a new connection
+				cardConnectionHandle = connectionResult.ConnectedCard.ConnectionHandle;
+				disconnectAfterSent = true;
+
+				Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU: new connection established. Handle: " 
+					+ cardConnectionHandle);
+			}
+
 			var recvBuff = new byte[500];
 
 			WinscardWrapper.SCARD_IO_REQUEST pioSendRequest;
 			pioSendRequest.dwProtocol = card.Protocol;
 			pioSendRequest.cbPciLength = PciLength;
 
-			Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU started");
-			Logger.TraceEvent(TraceEventType.Information, 0, "bytesToSend: {0}", BitConverter.ToString(bytesToSend));
-			Logger.Flush();
-
 			int returnCode = WinscardWrapper.SCardTransmit(
-				card.ConnectionHandle, ref pioSendRequest,
+				cardConnectionHandle, ref pioSendRequest,
 				ref bytesToSend[0], bytesToSend.Length,
 				ref pioSendRequest, ref recvBuff[0],
 				ref expectedRequestLength);
