@@ -16,7 +16,7 @@ namespace Lando.Watcher
 		private const string PnpNotification = "\\\\?PnP?\\Notification";
 
 		private static readonly AsyncOperation AsyncOperation = AsyncOperationManager.CreateOperation(null);
-		private readonly ConcurrentDictionary<string, bool> _attachedCardStatuses = new ConcurrentDictionary<string, bool>();
+		private readonly ConcurrentDictionary<string, Card> _attachedCardStatuses = new ConcurrentDictionary<string, Card>();
 		private readonly List<CardreaderStatus> _statuses = new List<CardreaderStatus>();
 		private readonly LowLevelCardReader _cardreader;
 
@@ -161,7 +161,7 @@ namespace Lando.Watcher
 									{
 										connectedLowlevelCard.IdBytes = result.Bytes;
 
-										RememberCardreaderHadCard(cardreaderStatus.Name);
+										RememberCardreaderHadCard(cardreaderStatus.Name, connectedLowlevelCard);
 
 										RaiseCardConnectedEvent(connectedLowlevelCard);
 									}
@@ -215,6 +215,10 @@ namespace Lando.Watcher
 
 							if (DidCardreaderHaveConnectedCard(cardreaderStatus.Name))
 							{
+								var currentCard = LastConnectedCard(cardreaderStatus.Name);
+								if (currentCard != null)
+									_cardreader.DisconnectCard(currentCard);
+
 								// reset previously connected card and raise the card connected event
 								ForgotAboutCardreaderHadCard(cardreaderStatus.Name);
 								RaiseCardDisconnectedEvent();
@@ -278,21 +282,36 @@ namespace Lando.Watcher
 
 		private bool DidCardreaderHaveConnectedCard(string cardreaderName)
 		{
-			bool hadAttachedCard;
-			_attachedCardStatuses.TryGetValue(cardreaderName, out hadAttachedCard);
+			Card attachedCard = null;
 
-			Logger.TraceEvent(TraceEventType.Information, 0, "Checking for a previously connected card. Result: " + hadAttachedCard);
+			_attachedCardStatuses.TryGetValue(cardreaderName, out attachedCard);
+
+			var result = attachedCard != null;
+
+			Logger.TraceEvent(TraceEventType.Information, 0, "Checking for a previously connected card. Result: " + result);
 			Logger.Flush();
 
-			return hadAttachedCard;
+			return result;
 		}
 
-		private void RememberCardreaderHadCard(string readerName)
+		private Card LastConnectedCard(string cardreaderName)
+		{
+			Card attachedCard = null;
+
+			_attachedCardStatuses.TryGetValue(cardreaderName, out attachedCard);
+
+			Logger.TraceEvent(TraceEventType.Information, 0, "Checking for a previously connected card. Result: " + (attachedCard != null ? "card exist" : "card not exist"));
+			Logger.Flush();
+
+			return attachedCard;
+		}
+
+		private void RememberCardreaderHadCard(string readerName, Card connectedCard)
 		{
 			Logger.TraceEvent(TraceEventType.Information, 0, "Marking that cardreader ({0}) had a card", readerName);
 			Logger.Flush();
 
-			_attachedCardStatuses.AddOrUpdate(readerName, true, (key, newValue) => true);
+			_attachedCardStatuses.AddOrUpdate(readerName, connectedCard, (key, newValue) => connectedCard);
 		}
 
 		private void ForgotAboutCardreaderHadCard(string readerName)
@@ -300,7 +319,8 @@ namespace Lando.Watcher
 			Logger.TraceEvent(TraceEventType.Information, 0, "Forgetting that the previously connected card of {0}", readerName);
 			Logger.Flush();
 
-			_attachedCardStatuses.TryUpdate(readerName, false, true);
+			Card tmp;
+			_attachedCardStatuses.TryRemove(readerName, out tmp);
 		}
 
 		private void RemoveCardreaderFromList(string cardreaderName)
