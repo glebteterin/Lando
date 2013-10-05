@@ -196,6 +196,9 @@ namespace Lando.LowLevel
 			var firstByte = fullResponseLength - 2;
 			var secondByte = firstByte + 1;
 
+			if (receiveBytes.Length == 0)
+				return false;
+
 			if (firstByte <= 0 || firstByte >= receiveBytes.Length || secondByte >= receiveBytes.Length)
 				return false;
 
