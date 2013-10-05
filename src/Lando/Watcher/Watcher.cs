@@ -113,6 +113,7 @@ namespace Lando.Watcher
 					if (_started)
 					{
 						Logger.TraceEvent(TraceEventType.Information, 0, "WaitForChanges operation result is " + operationResult.StatusName);
+						Logger.Flush();
 
 						throw new SmartCardException(operationResult);
 					}
@@ -241,6 +242,7 @@ namespace Lando.Watcher
 		private void RaiseCardConnectedEvent(Card connectedLowlevelCard)
 		{
 			Logger.TraceEvent(TraceEventType.Information, 0, "Raising CardConnected event");
+			Logger.Flush();
 
 			SendOrPostCallback cb = state => CardConnected(null, new WatcherCardEventArgs(connectedLowlevelCard));
 			AsyncOperation.Post(cb, null);
@@ -249,6 +251,7 @@ namespace Lando.Watcher
 		private void RaiseCardDisconnectedEvent()
 		{
 			Logger.TraceEvent(TraceEventType.Information, 0, "Raising CardDisconnected event");
+			Logger.Flush();
 
 			SendOrPostCallback cb = state => CardDisconnected(null, new WatcherCardEventArgs());
 			AsyncOperation.Post(cb, null);
@@ -257,6 +260,7 @@ namespace Lando.Watcher
 		private void RaiseCardreaderConnectedEvent(string readerName)
 		{
 			Logger.TraceEvent(TraceEventType.Information, 0, "Raising CardreaderConnected event");
+			Logger.Flush();
 
 			SendOrPostCallback cb = state => CardreaderConnected(null, new WatcherCardreaderEventArgs(readerName));
 			AsyncOperation.Post(cb, null);
@@ -265,6 +269,7 @@ namespace Lando.Watcher
 		private void RaiseCardreaderDisconnectedEvent(CardreaderStatus cardreaderStatus)
 		{
 			Logger.TraceEvent(TraceEventType.Information, 0, "Raising CardreaderDisconnected event");
+			Logger.Flush();
 
 			SendOrPostCallback cb =
 				state => CardreaderDisconnected(null, new WatcherCardreaderEventArgs(cardreaderStatus.Name));
@@ -277,6 +282,7 @@ namespace Lando.Watcher
 			_attachedCardStatuses.TryGetValue(cardreaderName, out hadAttachedCard);
 
 			Logger.TraceEvent(TraceEventType.Information, 0, "Checking for a previously connected card. Result: " + hadAttachedCard);
+			Logger.Flush();
 
 			return hadAttachedCard;
 		}
@@ -284,6 +290,7 @@ namespace Lando.Watcher
 		private void RememberCardreaderHadCard(string readerName)
 		{
 			Logger.TraceEvent(TraceEventType.Information, 0, "Marking that cardreader ({0}) had a card", readerName);
+			Logger.Flush();
 
 			_attachedCardStatuses.AddOrUpdate(readerName, true, (key, newValue) => true);
 		}
@@ -291,6 +298,7 @@ namespace Lando.Watcher
 		private void ForgotAboutCardreaderHadCard(string readerName)
 		{
 			Logger.TraceEvent(TraceEventType.Information, 0, "Forgetting that the previously connected card of {0}", readerName);
+			Logger.Flush();
 
 			_attachedCardStatuses.TryUpdate(readerName, false, true);
 		}
@@ -319,6 +327,7 @@ namespace Lando.Watcher
 					Logger.TraceEvent(TraceEventType.Information, 0, "Status: {0}", statusType);
 				}
 			}
+			Logger.Flush();
 		}
 	}
 }

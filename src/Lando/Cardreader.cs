@@ -82,19 +82,27 @@ namespace Lando
 		{
 			if (card == null) throw new ArgumentNullException("card");
 
+			Logger.TraceEvent(TraceEventType.Information, 0, "Cardreader: SetBuzzerOutputForCardDetection entering");
+			Logger.Flush();
+
 			LowlevelReader.SetBuzzerOutputForCardDetection(card.Card, shouldBuzzWhenCardDetected);
+
+			Logger.TraceEvent(TraceEventType.Information, 0, "Cardreader: SetBuzzerOutputForCardDetection done");
+			Logger.Flush();
 		}
 
 		internal virtual void OnCardreaderConnected(object sender, WatcherCardreaderEventArgs e)
 		{
-			Logger.TraceEvent(TraceEventType.Information, 0, "Save invocation of CardreaderConnected");
+			Logger.TraceEvent(TraceEventType.Information, 0, "Cardreader: Save invocation of CardreaderConnected");
+			Logger.Flush();
 
 			CardreaderConnected.SafeInvoke(this, new CardreaderEventArgs(e.CardreaderName));
 		}
 
 		internal virtual void OnCardreaderDisconnected(object sender, WatcherCardreaderEventArgs e)
 		{
-			Logger.TraceEvent(TraceEventType.Information, 0, "Save invocation of CardreaderDisconnected");
+			Logger.TraceEvent(TraceEventType.Information, 0, "Cardreader: Save invocation of CardreaderDisconnected");
+			Logger.Flush();
 
 			CardreaderDisconnected.SafeInvoke(this, new CardreaderEventArgs(e.CardreaderName));
 		}
@@ -103,14 +111,16 @@ namespace Lando
 		{
 			var card = new ContactlessCard(e.Card);
 
-			Logger.TraceEvent(TraceEventType.Information, 0, "Save invocation of CardConnected");
+			Logger.TraceEvent(TraceEventType.Information, 0, "Cardreader: Save invocation of CardConnected");
+			Logger.Flush();
 
 			CardConnected.SafeInvoke(this, new CardreaderEventArgs(card, e.Card.CardreaderName));
 		}
 
 		internal virtual void OnCardDisconnected(object sender, WatcherCardEventArgs e)
 		{
-			Logger.TraceEvent(TraceEventType.Information, 0, "Save invocation of CardDisconnected");
+			Logger.TraceEvent(TraceEventType.Information, 0, "Cardreader: Save invocation of CardDisconnected");
+			Logger.Flush();
 
 			CardDisconnected.SafeInvoke(this, new CardreaderEventArgs((string)null));
 		}

@@ -41,6 +41,7 @@ namespace Lando.LowLevel
 				if (returnCode == WinscardWrapper.SCARD_S_SUCCESS)
 				{
 					Logger.TraceEvent(TraceEventType.Information, 0, "Context established");
+					Logger.Flush();
 					_isConnected = true;
 				}
 
@@ -63,6 +64,7 @@ namespace Lando.LowLevel
 				if (operationResult.IsSuccessful)
 				{
 					Logger.TraceEvent(TraceEventType.Information, 0, "Context released");
+					Logger.Flush();
 					_isConnected = true;
 				}
 
@@ -119,6 +121,7 @@ namespace Lando.LowLevel
 				scardStatuses[i] = statuses[i].ToScardStatus();
 
 			Logger.TraceEvent(TraceEventType.Information, 0, "SCardGetStatusChange started");
+			Logger.Flush();
 
 			var returnCode = WinscardWrapper.SCardGetStatusChange(
 				_resourceManagerContext,
@@ -127,6 +130,7 @@ namespace Lando.LowLevel
 				scardStatuses.Length);
 
 			Logger.TraceEvent(TraceEventType.Information, 0, "SCardGetStatusChange ended");
+			Logger.Flush();
 
 			var operationResult = ReturnCodeManager.GetErrorMessage(returnCode);
 
@@ -286,6 +290,7 @@ namespace Lando.LowLevel
 
 			Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU started");
 			Logger.TraceEvent(TraceEventType.Information, 0, "bytesToSend: {0}", BitConverter.ToString(bytesToSend));
+			Logger.Flush();
 
 			int returnCode = WinscardWrapper.SCardTransmit(
 				card.ConnectionHandle, ref pioSendRequest,
@@ -294,6 +299,7 @@ namespace Lando.LowLevel
 				ref expectedRequestLength);
 
 			Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU ended");
+			Logger.Flush();
 
 			//http://msdn.microsoft.com/en-us/library/windows/desktop/aa379804(v=vs.85).aspx
 			//The pcbRecvLength should be at least n+2 and will be set to n+2 upon return.
