@@ -112,7 +112,7 @@ namespace Lando.Watcher
 					// so check for that
 					if (_started)
 					{
-						Logger.TraceEvent(TraceEventType.Information, 0, "WaitForChanges operation result is " + operationResult.StatusName);
+						Logger.TraceEvent(TraceEventType.Verbose, 0, "WaitForChanges operation result is " + operationResult.StatusName);
 						Logger.Flush();
 
 						throw new SmartCardException(operationResult);
@@ -245,7 +245,7 @@ namespace Lando.Watcher
 
 		private void RaiseCardConnectedEvent(Card connectedLowlevelCard)
 		{
-			Logger.TraceEvent(TraceEventType.Information, 0, "Raising CardConnected event");
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "Raising CardConnected event");
 			Logger.Flush();
 
 			SendOrPostCallback cb = state => CardConnected(null, new WatcherCardEventArgs(connectedLowlevelCard));
@@ -254,7 +254,7 @@ namespace Lando.Watcher
 
 		private void RaiseCardDisconnectedEvent()
 		{
-			Logger.TraceEvent(TraceEventType.Information, 0, "Raising CardDisconnected event");
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "Raising CardDisconnected event");
 			Logger.Flush();
 
 			SendOrPostCallback cb = state => CardDisconnected(null, new WatcherCardEventArgs());
@@ -263,7 +263,7 @@ namespace Lando.Watcher
 
 		private void RaiseCardreaderConnectedEvent(string readerName)
 		{
-			Logger.TraceEvent(TraceEventType.Information, 0, "Raising CardreaderConnected event");
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "Raising CardreaderConnected event");
 			Logger.Flush();
 
 			SendOrPostCallback cb = state => CardreaderConnected(null, new WatcherCardreaderEventArgs(readerName));
@@ -272,7 +272,7 @@ namespace Lando.Watcher
 
 		private void RaiseCardreaderDisconnectedEvent(CardreaderStatus cardreaderStatus)
 		{
-			Logger.TraceEvent(TraceEventType.Information, 0, "Raising CardreaderDisconnected event");
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "Raising CardreaderDisconnected event");
 			Logger.Flush();
 
 			SendOrPostCallback cb =
@@ -288,7 +288,7 @@ namespace Lando.Watcher
 
 			var result = attachedCard != null;
 
-			Logger.TraceEvent(TraceEventType.Information, 0, "Checking for a previously connected card. Result: " + result);
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "Checking for a previously connected card. Result: " + result);
 			Logger.Flush();
 
 			return result;
@@ -300,7 +300,7 @@ namespace Lando.Watcher
 
 			_attachedCardStatuses.TryGetValue(cardreaderName, out attachedCard);
 
-			Logger.TraceEvent(TraceEventType.Information, 0, "Checking for a previously connected card. Result: " + (attachedCard != null ? "card exist" : "card not exist"));
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "Checking for a previously connected card. Result: " + (attachedCard != null ? "card exist" : "card not exist"));
 			Logger.Flush();
 
 			return attachedCard;
@@ -308,7 +308,7 @@ namespace Lando.Watcher
 
 		private void RememberCardreaderHadCard(string readerName, Card connectedCard)
 		{
-			Logger.TraceEvent(TraceEventType.Information, 0, "Marking that cardreader ({0}) had a card", readerName);
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "Marking that cardreader ({0}) had a card", readerName);
 			Logger.Flush();
 
 			_attachedCardStatuses.AddOrUpdate(readerName, connectedCard, (key, newValue) => connectedCard);
@@ -316,7 +316,7 @@ namespace Lando.Watcher
 
 		private void ForgotAboutCardreaderHadCard(string readerName)
 		{
-			Logger.TraceEvent(TraceEventType.Information, 0, "Forgetting that the previously connected card of {0}", readerName);
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "Forgetting that the previously connected card of {0}", readerName);
 			Logger.Flush();
 
 			Card tmp;
@@ -341,10 +341,10 @@ namespace Lando.Watcher
 		{
 			foreach (var cardreaderStatus in statuses)
 			{
-				Logger.TraceEvent(TraceEventType.Information, 0, "New statuses for {0}:", cardreaderStatus.Name);
+				Logger.TraceEvent(TraceEventType.Verbose, 0, "New statuses for {0}:", cardreaderStatus.Name);
 				foreach (var statusType in cardreaderStatus.Statuses)
 				{
-					Logger.TraceEvent(TraceEventType.Information, 0, "Status: {0}", statusType);
+					Logger.TraceEvent(TraceEventType.Verbose, 0, "Status: {0}", statusType);
 				}
 			}
 			Logger.Flush();
