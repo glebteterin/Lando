@@ -29,7 +29,7 @@ namespace Lando.LowLevel
 			{
 				if (_contextManager.IsContextExist(Thread.CurrentThread.ManagedThreadId))
 				{
-					Logger.TraceEvent(TraceEventType.Information, 0, "Context is already established.");
+					Logger.TraceEvent(TraceEventType.Verbose, 0, "Context is already established.");
 					Logger.Flush();
 
 					return new OperationResult(true, WinscardWrapper.SCARD_S_SUCCESS, null, null);
@@ -46,7 +46,7 @@ namespace Lando.LowLevel
 
 				if (returnCode == WinscardWrapper.SCARD_S_SUCCESS)
 				{
-					Logger.TraceEvent(TraceEventType.Information, 0, "Context established");
+					Logger.TraceEvent(TraceEventType.Verbose, 0, "Context established");
 					Logger.Flush();
 
 					_contextManager.AddContext(Thread.CurrentThread.ManagedThreadId, resourceManagerContext);
@@ -70,7 +70,7 @@ namespace Lando.LowLevel
 
 					if (releaseResult.IsSuccessful)
 					{
-						Logger.TraceEvent(TraceEventType.Information, 0, string.Format("Context released. Thread {0}", threadId));
+						Logger.TraceEvent(TraceEventType.Verbose, 0, string.Format("Context released. Thread {0}", threadId));
 						Logger.Flush();
 
 						_contextManager.ContextReleased(threadId);
@@ -137,7 +137,7 @@ namespace Lando.LowLevel
 			for (var i = 0; i < statuses.Length; i++)
 				scardStatuses[i] = statuses[i].ToScardStatus();
 
-			Logger.TraceEvent(TraceEventType.Information, 0, "SCardGetStatusChange started");
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "SCardGetStatusChange started");
 			Logger.Flush();
 
 			var returnCode = WinscardWrapper.SCardGetStatusChange(
@@ -146,7 +146,7 @@ namespace Lando.LowLevel
 				scardStatuses,
 				scardStatuses.Length);
 
-			Logger.TraceEvent(TraceEventType.Information, 0, "SCardGetStatusChange ended");
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "SCardGetStatusChange ended");
 			Logger.Flush();
 
 			var operationResult = ReturnCodeManager.GetErrorMessage(returnCode);
@@ -315,9 +315,9 @@ namespace Lando.LowLevel
 
 		private ApduResponse SendAPDU(Card card, byte[] bytesToSend, int expectedRequestLength)
 		{
-			Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU started");
-			Logger.TraceEvent(TraceEventType.Information, 0, "bytesToSend: {0}", BitConverter.ToString(bytesToSend));
-			Logger.TraceEvent(TraceEventType.Information, 0, "card connection handle: {0}", card.ConnectionHandle);
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "SendAPDU started");
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "bytesToSend: {0}", BitConverter.ToString(bytesToSend));
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "card connection handle: {0}", card.ConnectionHandle);
 			Logger.Flush();
 
 			IntPtr cardConnectionHandle = card.ConnectionHandle;
@@ -325,7 +325,7 @@ namespace Lando.LowLevel
 			// establish a new temporary connection in case of context mismatch
 			if (card.ThreadId != Thread.CurrentThread.ManagedThreadId)
 			{
-				Logger.TraceEvent(TraceEventType.Information, 0,
+				Logger.TraceEvent(TraceEventType.Verbose, 0,
 					string.Format("Card context mismatch. Original thread: {0}. Current thread: {1}",
 					card.ThreadId,
 					Thread.CurrentThread.ManagedThreadId));
@@ -348,7 +348,7 @@ namespace Lando.LowLevel
 					// use a handle of a new connection
 					cardConnectionHandle = connectionResult.ConnectedCard.ConnectionHandle;
 
-					Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU: new connection established. Handle: "
+					Logger.TraceEvent(TraceEventType.Verbose, 0, "SendAPDU: new connection established. Handle: "
 																	+ cardConnectionHandle);
 				}
 				else
@@ -356,7 +356,7 @@ namespace Lando.LowLevel
 					cardConnectionHandle = _cardConnectionManager
 						.GetConnection(card.InternalUid, Thread.CurrentThread.ManagedThreadId);
 
-					Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU: existed card context found. Handle: "
+					Logger.TraceEvent(TraceEventType.Verbose, 0, "SendAPDU: existed card context found. Handle: "
 																	+ cardConnectionHandle);
 				}
 			}
@@ -373,7 +373,7 @@ namespace Lando.LowLevel
 				ref pioSendRequest, ref recvBuff[0],
 				ref expectedRequestLength);
 
-			Logger.TraceEvent(TraceEventType.Information, 0, "SendAPDU ended. Return code: " + returnCode);
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "SendAPDU ended. Return code: " + returnCode);
 			Logger.Flush();
 
 			//http://msdn.microsoft.com/en-us/library/windows/desktop/aa379804(v=vs.85).aspx
