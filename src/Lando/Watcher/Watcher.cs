@@ -21,7 +21,7 @@ namespace Lando.Watcher
 		private readonly LowLevelCardReader _cardreader;
 
 		private int _cardreadersNumber;
-		private bool _started;
+		private volatile bool _started;
 		private Thread _workingThread;
 
 		public event WatcherCardEventHandler CardConnected;
