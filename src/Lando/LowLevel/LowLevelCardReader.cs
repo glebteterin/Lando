@@ -300,17 +300,52 @@ namespace Lando.LowLevel
 
 			if (cardForDisconnect.ConnectionHandle != IntPtr.Zero)
 			{
-				int returnCode = WinscardWrapper.SCardDisconnect(cardForDisconnect.ConnectionHandle, WinscardWrapper.SCARD_UNPOWER_CARD);
-				cardForDisconnect.ConnectionHandle = IntPtr.Zero;
-				var result = ReturnCodeManager.GetErrorMessage(returnCode);
-
-				if (result.IsSuccessful)
-					_cardConnectionManager.CardDisconnected(cardForDisconnect.InternalUid);
+				var result = DisconnectCardMultiHandlesAware(cardForDisconnect);
 
 				return result;
 			}
 
 			return OperationResult.Successful;
+		}
+
+		/// <summary>
+		/// Terminates all connections for given card.
+		/// </summary>
+		/// <remarks>
+		/// The card very likely is not attached to the cardreader at the moment of execution,
+		/// so SCARD_LEAVE_CARD is used here to avoid error log messages from underlying winscard api.
+		/// </remarks>
+		private OperationResult DisconnectCardMultiHandlesAware(Card cardForDisconnect)
+		{
+			var currentHandle = cardForDisconnect.ConnectionHandle;
+
+			// disconnect first (current) handle
+			var mainReturnCode = WinscardWrapper.SCardDisconnect(cardForDisconnect.ConnectionHandle, WinscardWrapper.SCARD_LEAVE_CARD);
+			var mainDisconnectResult = ReturnCodeManager.GetErrorMessage(mainReturnCode);
+
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "First handler disconnect result: {0}", mainDisconnectResult.StatusDescription);
+
+			// disconnect the rest handles
+			if (mainDisconnectResult.IsSuccessful)
+			{
+				var restHandlers = _cardConnectionManager.GetConnections(cardForDisconnect.InternalUid);
+
+				Logger.TraceEvent(TraceEventType.Verbose, 0, "Card has {0} handlers", restHandlers.Length);
+
+				foreach (var handleToDisconnect in restHandlers.Where(x => x != currentHandle))
+				{
+					var returnCode = WinscardWrapper.SCardDisconnect(handleToDisconnect, WinscardWrapper.SCARD_LEAVE_CARD);
+					var result = ReturnCodeManager.GetErrorMessage(returnCode);
+
+					Logger.TraceEvent(TraceEventType.Verbose, 0, "Card handler disconnect result: {0}", result.StatusDescription);
+				}
+
+				_cardConnectionManager.CardDisconnected(cardForDisconnect.InternalUid);
+			}
+
+			cardForDisconnect.ConnectionHandle = IntPtr.Zero;
+
+			return mainDisconnectResult;
 		}
 
 		private ApduResponse SendAPDU(Card card, byte[] bytesToSend, int expectedRequestLength)

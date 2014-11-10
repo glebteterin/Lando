@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Lando.LowLevel
@@ -34,6 +35,31 @@ namespace Lando.LowLevel
 			}
 		}
 
+		public IntPtr[] GetConnections(Guid cardId)
+		{
+			lock (_locker)
+			{
+				var result = new List<IntPtr>();
+
+				var keyPart = cardId.ToString();
+				var allKeys = _connectionContextDictionary.Keys;
+
+				var cardKeys = allKeys.Where(x => x.StartsWith(keyPart)).ToArray();
+
+				foreach (var keyToRemove in cardKeys)
+				{
+					IntPtr tmp;
+
+					if (_connectionContextDictionary.TryGetValue(keyToRemove, out tmp))
+					{
+						result.Add(tmp);
+					}
+				}
+
+				return result.ToArray();
+			}
+		}
+
 		public void AddConnection(Guid cardId, int threadId, IntPtr context)
 		{
 			var key = GetKey(cardId, threadId);
@@ -41,6 +67,9 @@ namespace Lando.LowLevel
 			_connectionContextDictionary.AddOrUpdate(key, context, (keyParam, newPointer) => context);
 		}
 
+		/// <summary>
+		/// Forget given card and all it's handles.
+		/// </summary>
 		public void CardDisconnected(Guid cardId)
 		{
 			lock (_locker)
