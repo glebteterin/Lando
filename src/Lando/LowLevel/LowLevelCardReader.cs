@@ -27,9 +27,17 @@ namespace Lando.LowLevel
 		{
 			lock (_locker)
 			{
-				if (_contextManager.IsContextExist(Thread.CurrentThread.ManagedThreadId))
+				var threadId = Thread.CurrentThread.ManagedThreadId;
+
+				if (_contextManager.IsContextExist(threadId))
 				{
-					Logger.TraceEvent(TraceEventType.Verbose, 0, "Context is already established.");
+					Process.GetCurrentProcess().Refresh();
+
+					Logger.TraceEvent(TraceEventType.Verbose, 0,
+						string.Format("Context is already established. Thread:{0} Total contexts number:{1} Total threads:{2}",
+						threadId,
+						_contextManager.Count,
+						Process.GetCurrentProcess().Threads.Count));
 					Logger.Flush();
 
 					return new OperationResult(true, WinscardWrapper.SCARD_S_SUCCESS, null, null);
@@ -49,8 +57,11 @@ namespace Lando.LowLevel
 					Logger.TraceEvent(TraceEventType.Verbose, 0, "Context established");
 					Logger.Flush();
 
-					_contextManager.AddContext(Thread.CurrentThread.ManagedThreadId, resourceManagerContext);
+					_contextManager.AddContext(threadId, resourceManagerContext);
 				}
+
+				// garbage collection
+				ReleaseOldContexts();
 
 				return ReturnCodeManager.GetErrorMessage(returnCode);
 			}
@@ -435,6 +446,40 @@ namespace Lando.LowLevel
 			var currentThreadContext = _contextManager.GetContext(Thread.CurrentThread.ManagedThreadId);
 
 			return currentThreadContext;
+		}
+
+		/// <summary>
+		/// Releases old contexts.
+		/// </summary>
+		/// <remarks>
+		/// This is a temporary fix for contexts leak issue.
+		/// </remarks>
+		private void ReleaseOldContexts()
+		{
+			const int garbageCollectorThreshold = 10;
+
+			var oldThreads = _contextManager.GetOldestContextOwnersThreads();
+
+			if (oldThreads.Count < garbageCollectorThreshold)
+				return;
+
+			var volumeToRelease = oldThreads.Count - garbageCollectorThreshold;
+
+			var threadsToRelease = oldThreads.Take(volumeToRelease);
+
+			foreach (var threadIdToRelease in threadsToRelease)
+			{
+				var threadContext = _contextManager.GetContext(threadIdToRelease);
+				var releaseResult = ReleaseContext(threadContext);
+
+				if (releaseResult.IsSuccessful)
+				{
+					Logger.TraceEvent(TraceEventType.Verbose, 0, string.Format("Context released. Thread {0}", threadIdToRelease));
+					Logger.Flush();
+
+					_contextManager.ContextReleased(threadIdToRelease);
+				}
+			}
 		}
 
 		/// <summary>
