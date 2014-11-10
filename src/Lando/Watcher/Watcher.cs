@@ -47,6 +47,9 @@ namespace Lando.Watcher
 		{
 			if (_started)
 			{
+				Logger.TraceEvent(TraceEventType.Verbose, 0, "Watcher: Stopping");
+				Logger.Flush();
+
 				_started = false;
 				_cardreader.ReleaseAllContexts();
 			}

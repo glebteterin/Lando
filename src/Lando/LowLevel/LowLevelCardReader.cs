@@ -70,7 +70,7 @@ namespace Lando.LowLevel
 
 					if (releaseResult.IsSuccessful)
 					{
-						Logger.TraceEvent(TraceEventType.Verbose, 0, string.Format("Context released. Thread {0}", threadId));
+						Logger.TraceEvent(TraceEventType.Verbose, 0, string.Format("Context released for thread {0}", threadId));
 						Logger.Flush();
 
 						_contextManager.ContextReleased(threadId);

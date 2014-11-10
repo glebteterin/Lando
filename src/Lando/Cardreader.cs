@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using Lando.Actions;
 using Lando.LowLevel;
 using Lando.Watcher;
 using Lando.Extensions;
@@ -9,14 +10,17 @@ namespace Lando
 	/// <summary>
 	/// Provides hardware reader events.
 	/// </summary>
-	public class Cardreader
+	public class Cardreader : IDisposable
 	{
 		private static readonly TraceSource Logger = new TraceSource("Lando", SourceLevels.All);
 
 		internal readonly LowLevelCardReader LowlevelReader;
 		internal readonly Watcher.Watcher Reader;
+		internal readonly ActionQueue ActionQueue;
 
 		private bool _isCardreaderWatchStarted;
+
+		private bool _disposed = false;
 
 		/// <summary>
 		/// Occurs when connection with cardreader established.
@@ -39,6 +43,7 @@ namespace Lando
 		{
 			LowlevelReader = new LowLevelCardReader();
 			Reader = new Watcher.Watcher(LowlevelReader);
+			ActionQueue = new ActionQueue(LowlevelReader);
 
 			Reader.CardConnected += OnCardConnected;
 			Reader.CardDisconnected += OnCardDisconnected;
@@ -51,9 +56,12 @@ namespace Lando
 		/// </summary>
 		public void StartWatch()
 		{
+			if (_disposed) throw new ObjectDisposedException("Cardreader", "Cannot access a disposed object.");
+
 			if (_isCardreaderWatchStarted)
 				return;
 
+			ActionQueue.Start();
 			Reader.Start();
 
 			_isCardreaderWatchStarted = true;
@@ -64,31 +72,62 @@ namespace Lando
 		/// </summary>
 		public void StopWatch()
 		{
+			if (_disposed) throw new ObjectDisposedException("Cardreader", "Cannot access a disposed object.");
+
+			Logger.TraceEvent(TraceEventType.Verbose, 0, "Cardreader: Stopping");
+			Logger.Flush();
+
+			ActionQueue.Stop();
 			Reader.Stop();
 		}
 
 		public void UpdateLedAndBuzzer(ContactlessCard card, LedBuzzerStatus status)
 		{
+			if (_disposed) throw new ObjectDisposedException("Cardreader", "Cannot access a disposed object.");
 			if (card == null) throw new ArgumentNullException("card");
 
-			LowlevelReader.UpdateLedAndBuzzer(
-				card.Card, status.GetLedState(),
-				status.GetT1(), status.GetT2(),
-				status.GetRepetition(),
-				status.GetBuzzerLink());
+			ActionQueue.EnqueueAction(new UpdateLedAndBuzzerAction(card, status));
 		}
 
 		public void SetBuzzerOutputForCardDetection(ContactlessCard card, bool shouldBuzzWhenCardDetected)
 		{
+			if (_disposed) throw new ObjectDisposedException("Cardreader", "Cannot access a disposed object.");
 			if (card == null) throw new ArgumentNullException("card");
 
 			Logger.TraceEvent(TraceEventType.Verbose, 0, "Cardreader: SetBuzzerOutputForCardDetection entering");
 			Logger.Flush();
 
-			LowlevelReader.SetBuzzerOutputForCardDetection(card.Card, shouldBuzzWhenCardDetected);
+			ActionQueue.EnqueueAction(new SetBuzzerOutputForCardDetectionAction(card, shouldBuzzWhenCardDetected));
 
 			Logger.TraceEvent(TraceEventType.Verbose, 0, "Cardreader: SetBuzzerOutputForCardDetection done");
 			Logger.Flush();
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposed)
+			{
+				if (disposing)
+				{
+					if (Reader != null)
+					{
+						Reader.Stop();
+					}
+
+					if (LowlevelReader != null)
+					{
+						LowlevelReader.Dispose();
+					}
+				}
+
+				_disposed = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		internal virtual void OnCardreaderConnected(object sender, WatcherCardreaderEventArgs e)

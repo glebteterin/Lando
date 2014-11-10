@@ -39,6 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionQueue.cs" />
     <Compile Include="Cardreader.cs" />
     <Compile Include="CardreaderEventArgs.cs" />
     <Compile Include="CardreaderEventHandlerDelegate.cs" />
@@ -63,6 +64,8 @@
     <Compile Include="LowLevel\WinscardWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LowLevel\ResultsTypes\ConnectResult.cs" />
+    <Compile Include="Actions\SetBuzzerOutputForCardDetectionAction.cs" />
+    <Compile Include="Actions\UpdateLedAndBuzzerAction.cs" />
     <Compile Include="Watcher\Watcher.cs" />
     <Compile Include="Watcher\WatcherCardEventArgs.cs" />
     <Compile Include="Watcher\WatcherCardEventHandler.cs" />
@@ -70,5 +73,6 @@
     <Compile Include="Watcher\WatcherCardreaderEventHandlerDelegate.cs" />
     <Compile Include="Watcher\WatcherErrorEventHandlerDelegate.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
