@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Lando")]
 [assembly: AssemblyCompany("Lando")]
 [assembly: AssemblyProduct("Lando v1.0")]
-[assembly: AssemblyVersion("1.0.1")]
+[assembly: AssemblyVersion("1.0.2")]
 [assembly: AssemblyCopyright("Copyright © 2013 by Gleb Teterin")]
 
 #if DEBUG
