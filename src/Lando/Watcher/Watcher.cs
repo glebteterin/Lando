@@ -181,9 +181,9 @@ namespace Lando.Watcher
 									}
 									else
 									{
-										// if card was detached before than id was received
-										// reset updated status
-										cardreaderStatus.NewStatusFlags = cardreaderStatus.CurrentStatusFlags;
+										// not clear what exactly this case means
+										// it can be if card was detached before than id was received
+										// so just do nothing and expect this status will be swapped
 									}
 								}
 							}
@@ -239,9 +239,10 @@ namespace Lando.Watcher
 						{
 							DetectAvailableCardreaders();
 						}
-
-						cardreaderStatus.Swap();
 					}
+
+					// always swap statuses to repetitive hits of SCardGetStatusChange
+					cardreaderStatus.Swap();
 				}
 			}
 		}
