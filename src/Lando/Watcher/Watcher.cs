@@ -224,7 +224,7 @@ namespace Lando.Watcher
 
 								// reset previously connected card and raise the card connected event
 								ForgotAboutCardreaderHadCard(cardreaderStatus.Name);
-								RaiseCardDisconnectedEvent();
+								RaiseCardDisconnectedEvent(currentCard);
 							}
 						}
 						if (newStatuses.Contains(CardreaderStatus.StatusType.CardreaderDisconnected))
@@ -256,12 +256,12 @@ namespace Lando.Watcher
 			AsyncOperation.Post(cb, null);
 		}
 
-		private void RaiseCardDisconnectedEvent()
+		private void RaiseCardDisconnectedEvent(Card connectedLowlevelCard)
 		{
 			Logger.TraceEvent(TraceEventType.Verbose, 0, "Raising CardDisconnected event");
 			Logger.Flush();
 
-			SendOrPostCallback cb = state => CardDisconnected(null, new WatcherCardEventArgs());
+			SendOrPostCallback cb = state => CardDisconnected(null, new WatcherCardEventArgs(connectedLowlevelCard));
 			AsyncOperation.Post(cb, null);
 		}
 

@@ -158,10 +158,12 @@ namespace Lando
 
 		internal virtual void OnCardDisconnected(object sender, WatcherCardEventArgs e)
 		{
+			var card = new ContactlessCard(e.Card);
+
 			Logger.TraceEvent(TraceEventType.Verbose, 0, "Cardreader: Save invocation of CardDisconnected");
 			Logger.Flush();
 
-			CardDisconnected.SafeInvoke(this, new CardreaderEventArgs((string)null));
+			CardDisconnected.SafeInvoke(this, new CardreaderEventArgs(card, e.Card.CardreaderName);
 		}
 	}
 }
